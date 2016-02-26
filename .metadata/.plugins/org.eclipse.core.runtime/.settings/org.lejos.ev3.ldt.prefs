@@ -1,0 +1,5 @@
+ConnectionName=10.0.1.1
+eclipse.preferences.version=1
+ev3Home=/Users/Nabillionaire/Desktop/leJOS_EV3_0.9.0-beta
+run.runAfterUpload=false
+useSshScp=true
