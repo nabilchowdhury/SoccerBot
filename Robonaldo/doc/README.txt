@@ -1,0 +1,1 @@
+To begin reading the documentation, please open 'index.html' in your browser of choice.
