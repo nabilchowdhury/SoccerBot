@@ -3,15 +3,28 @@ package soccerbot;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 
+/**
+ * Screen handles information grabbed from the Dometer to be outputed to
+ * the LCD Screen. This screen is refresed every 250 ms. 
+ * Both one and only one Odometer and Screen can exist.
+ */
 public class Screen extends Thread{
 	private TextLCD t = LocalEV3.get().getTextLCD();
 	Odometer odometer;
 	private static final long DISPLAY_PERIOD = 250;
 	
+	/**
+	 * @param odometer The <code>Odometer</code> to be polled for information
+	 */
 	Screen(Odometer odometer){
 		this.odometer = odometer;
 	}
 	
+	/**
+	 * The current x and y poisiton and heading are drawn to the screen and refreshed every 250 ms
+	 * 
+	 * @see java.lang.Thread#run()
+	 */
 	public void run() {
 		long displayStart, displayEnd;
 		double[] position = new double[3];

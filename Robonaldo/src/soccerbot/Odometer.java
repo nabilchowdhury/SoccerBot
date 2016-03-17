@@ -1,10 +1,26 @@
-/*
- * Odometer.java
- */
 package soccerbot;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
+/**
+ * Class which controls the odometer for the robot
+ * 
+ * Odometer defines cooridinate system as such...
+ * 
+ * 					0Deg:pos y-axis
+ * 							|
+ * 							|
+ * 							|
+ * 							|
+ * 270Deg:neg x-axis------------------90Deg:pos x-axis
+ * 							|
+ * 							|
+ * 							|
+ * 							|
+ * 					180Deg:neg y-axis
+ * 
+ * The odometer is initalized to 0 degrees, assuming the robot is facing up the positive y-axis
+ */
 public class Odometer extends Thread {
 	// class constants: robot dimensions
 	private static final double W_BASE = 15.47;	
@@ -29,7 +45,14 @@ public class Odometer extends Thread {
 	// motors
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 
-	// constructor
+	/**
+	 * Constructor requires the motors used for navigating the robot to caluclate
+	 * the distance travelled through math and trigonomtery. It is assumed that two
+	 * motors are to be used.
+	 * 
+	 * @param leftMotor Left motor of the robot
+	 * @param rightMotor Right motor of the robot
+	 */
 	public Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor) {
 		x = 0.0;
 		y = 0.0;
@@ -40,7 +63,10 @@ public class Odometer extends Thread {
 		this.leftMotor = leftMotor;
 	}
 
-	// run method (required for Thread)
+	/**
+	 * TODO
+	 * @see java.lang.Thread#run()
+	 */
 	public void run() {
 		long updateStart, updateEnd;
 		double distL, distR, deltaD, deltaT, dX, dY;
@@ -110,19 +136,11 @@ public class Odometer extends Thread {
 		}
 	}
 
-	// accessors
-	public void getPosition(double[] position, boolean[] update) {
-		// ensure that the values don't change while the odometer is running
-		synchronized (lock) {
-			if (update[0])
-				position[0] = x;
-			if (update[1])
-				position[1] = y;
-			if (update[2])
-				position[2] = theta;
-		}
-	}
-
+	/**
+	 * Get the x-position reported by this odometer
+	 * 
+	 * @return X-position in cm reported by this odometer
+	 */
 	public double getX() {
 		double result;
 
@@ -133,6 +151,11 @@ public class Odometer extends Thread {
 		return result;
 	}
 
+	/**
+	 * Get the y-position reported by this odometer
+	 * 
+	 * @return Y-position in cm reported by this odometer
+	 */
 	public double getY() {
 		double result;
 
@@ -143,6 +166,11 @@ public class Odometer extends Thread {
 		return result;
 	}
 
+	/**
+	 * Get the heading reported by this odometer
+	 * 
+	 * @return Angle in radians reported by this odometer
+	 */
 	public double getTheta() {
 		double result;
 
@@ -153,31 +181,27 @@ public class Odometer extends Thread {
 		return result;
 	}
 
-	// mutators
-	public void setPosition(double[] position, boolean[] update) {
-		// ensure that the values don't change while the odometer is running
-		synchronized (lock) {
-			if (update[0])
-				x = position[0];
-			if (update[1])
-				y = position[1];
-			if (update[2])
-				theta = position[2];
-		}
-	}
-
+	/**
+	 * Set the x-position in cm of this odometer
+	 */
 	public void setX(double x) {
 		synchronized (lock) {
 			this.x = x;
 		}
 	}
 
+	/**
+	 * Set the y-position in cm of this odometer
+	 */
 	public void setY(double y) {
 		synchronized (lock) {
 			this.y = y;
 		}
 	}
 
+	/**
+	 * Set the angle in radians of his odometer
+	 */
 	public void setTheta(double theta) {
 		synchronized (lock) {
 			this.theta = theta;
