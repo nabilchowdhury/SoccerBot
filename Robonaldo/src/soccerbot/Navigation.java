@@ -5,9 +5,9 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 public class Navigation {
 	// class constants
 	private final static double W_RADIUS = 2.096;
-	private final static double TRACK = 15.92;
-	private final static int FAST = 200, SLOW = 100, REGULAR = 170;
-	private final static double DEG_ERR = 0.015, CM_ERR = 0.5;
+	private final static double TRACK = 15.95;
+	private final static int FAST = 200, SLOW = 100, REGULAR = 160;
+	private final static double DEG_ERR = 0.05, CM_ERR = 0.5;
 	
 	// motors
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
@@ -26,7 +26,7 @@ public class Navigation {
 	
 	//navigation methods
 	
-	private void travelTo(double x, double y){		
+	public void travelTo(double x, double y){		
 		synchronized(lock){
 			
 			double odoX = odometer.getX();
@@ -49,18 +49,25 @@ public class Navigation {
 				odoY = odometer.getY();
 				odoTheta = odometer.getTheta();
 			}
-			
+			stopMotors();
 		}
 	}
 	
 		
 	// Causes robot to turn to absolute heading theta via minimum angle
-	private void turnTo(double theta){		
+	public void turnTo(double theta){		
 		synchronized(lock){
 			setSpeeds(SLOW, SLOW, true);
 			leftMotor.rotate(convertAngle(W_RADIUS, TRACK, theta), true);	
 			rightMotor.rotate(-convertAngle(W_RADIUS, TRACK, theta), false);
-			stopMotors();
+		}
+	}
+	
+	public void turnToRelative(double theta){	
+		synchronized(lock){
+			setSpeeds(SLOW, SLOW, false);
+			leftMotor.rotate(convertAngle(W_RADIUS, TRACK, theta), true);	
+			rightMotor.rotate(-convertAngle(W_RADIUS, TRACK, theta), false);
 		}
 	}
 	

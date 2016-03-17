@@ -7,6 +7,7 @@ import lejos.robotics.SampleProvider;
 
 public class OdometryCorrection extends Thread {
 	private static final long CORRECTION_PERIOD = 10;
+	
 	private Odometer odometer;
 		
 	// Color sensor is used to detect known landmarks (in this case black lines)

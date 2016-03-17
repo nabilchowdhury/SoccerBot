@@ -1,0 +1,25 @@
+package soccerbot;
+
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+
+public class Robonaldo {
+	
+	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+	
+	//MAIN METHOD
+	public static void main(String[] args){
+
+		Odometer odo = new Odometer(leftMotor, rightMotor);
+		Screen screen = new Screen(odo);
+		odo.start();
+		screen.start();
+		
+		
+		Navigation n = new Navigation(odo, leftMotor, rightMotor);
+		
+		n.travelTo(0, 60);
+		
+	}
+}
