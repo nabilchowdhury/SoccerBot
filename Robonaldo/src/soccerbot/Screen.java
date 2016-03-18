@@ -36,7 +36,7 @@ public class Screen extends Thread{
 			// clear the lines for displaying odometry information
 			t.drawString("x: "+(Math.round(odometer.getX() * 100.0)/100.0), 0, 0);
 			t.drawString("y: "+(Math.round(odometer.getY() * 100.0)/100.0), 0, 1);
-			t.drawString("t: "+(Math.round(odometer.getTheta() * 57.2958 * 100.0)/100.0), 0, 2);
+			t.drawString("t: "+((Math.toDegrees(odometer.getTheta())* 100.0)/100.0), 0, 2);
 			
 			// throttle the OdometryDisplay
 			displayEnd = System.currentTimeMillis();

@@ -115,10 +115,9 @@ public class Odometer extends Thread {
 				x += dX;											
 				y += dY;
 				
-				// bound theta
-				if(Math.abs(theta) >= 2*Math.PI){
-					theta = (double)Math.round(theta%(2*Math.PI)*100d)/100d;
-				}
+				// Bounded theta
+				if (this.theta > (Math.PI * 2)) this.theta %= (Math.PI * 2);
+				if (this.theta < 0) this.theta += (Math.PI * 2);
 				
 			}
 

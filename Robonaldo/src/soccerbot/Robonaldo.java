@@ -27,4 +27,8 @@ public class Robonaldo {
 		n.travelTo(0, 15.24);
 		n.travelTo(15.24, 0);
 	}
+	
+	public static EV3LargeRegulatedMotor[] getMotors() {
+		return new EV3LargeRegulatedMotor[] {leftMotor, rightMotor};
+	}
 }
