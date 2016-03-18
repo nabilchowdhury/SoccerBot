@@ -16,8 +16,8 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 public class Navigation {
 	// class constants
 	private final static double W_RADIUS = 2.096;
-	private final static double TRACK = 15.95;
-	private final static int FAST = 200, SLOW = 100, REGULAR = 160;
+	private final static double TRACK = 13.68;
+	private final static int FAST = 200, SLOW = 100, REGULAR = 160, SMOOTH = 500, DEFAULT = 6000;
 	private final static double DEG_ERR = 0.05, CM_ERR = 0.5;
 	
 	// motors
@@ -61,20 +61,20 @@ public class Navigation {
 	 */
 	public void travelTo(double x, double y){		
 		synchronized(lock){
-			
+
 			double odoX = odometer.getX();
 			double odoY = odometer.getY();
 			double odoTheta = odometer.getTheta();
 			double heading = Math.atan2(x-odoX, y-odoY);
 			double angularError;
 			
-			while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
+			while (euclidianDist(odoX, odoY, x, y) > CM_ERR) {
 				angularError = Math.abs(heading - odoTheta);
 				if(angularError > DEG_ERR){
 					turnTo(angleToHeading(x, y));
 				}
 				
-				setSpeeds(REGULAR, REGULAR, true);
+				setSpeeds(REGULAR, REGULAR, true, SMOOTH);
 				
 				// (make simpler later)
 				// Update current position
@@ -82,7 +82,7 @@ public class Navigation {
 				odoY = odometer.getY();
 				odoTheta = odometer.getTheta();
 			}
-			stopMotors();
+			//stopMotors();
 		}
 	}
 	
@@ -92,9 +92,9 @@ public class Navigation {
 	 * @param theta Absolute angle from the y-axis to turn to
 	 * @see Odometer
 	 */
-	public void turnTo(double theta){		
+	public void turnTo(double theta){	
 		synchronized(lock){
-			setSpeeds(SLOW, SLOW, true);
+			setSpeeds(SLOW, SLOW, true, DEFAULT);
 			leftMotor.rotate(convertAngle(W_RADIUS, TRACK, theta), true);	
 			rightMotor.rotate(-convertAngle(W_RADIUS, TRACK, theta), false);
 		}
@@ -165,9 +165,11 @@ public class Navigation {
 	 * @param rightSpeed Speed of right motor
 	 * @param move Begin motion of motors if <code>true</code> otherwise do nothing
 	 */
-	private void setSpeeds(int leftSpeed, int rightSpeed, boolean move){
+	private void setSpeeds(int leftSpeed, int rightSpeed, boolean move, int acceleration){
 		leftMotor.setSpeed(leftSpeed);
 		rightMotor.setSpeed(rightSpeed);
+		leftMotor.setAcceleration(acceleration);
+		rightMotor.setAcceleration(acceleration);
 		if(leftSpeed == 0 && rightSpeed == 0){
 			stopMotors();
 		}
@@ -188,12 +190,17 @@ public class Navigation {
 	}
 	
 	private void stopMotors(){
+		leftMotor.setAcceleration(DEFAULT);
+		rightMotor.setAcceleration(DEFAULT);
 		leftMotor.setSpeed(0);
 		rightMotor.setSpeed(0);
 		leftMotor.backward();
 		rightMotor.backward();
 	}
 	
+	private double euclidianDist(double x1, double y1, double x2, double y2){
+		return Math.sqrt(Math.pow(y2-y1, 2) + Math.pow(x2 - x1, 2));
+	}
 	
 }
 
