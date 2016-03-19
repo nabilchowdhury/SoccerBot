@@ -43,9 +43,14 @@ public class Robonaldo {
 		loadMotor.setSpeed(120);
 		loadMotor.rotateTo(-110);
 		loadMotor.stop();
+		launchMotor.setSpeed(200);
+		launchMotor.rotateTo(360);
 		launchMotor.setAcceleration(200000000);
+		
+		
 		int button = Button.waitForAnyPress();
 		while(button == Button.ID_ENTER){
+			launchMotor.stop();
 			loadMotor.setAcceleration(150);			
 			loadMotor.rotateTo(110);
 			loadMotor.setSpeed(70);
@@ -54,9 +59,9 @@ public class Robonaldo {
 			button = Button.waitForAnyPress();
 			
 			launchMotor.setSpeed(700);
-			launchMotor.rotate(-120);
+			launchMotor.rotate(-320);
 			button = Button.waitForAnyPress();
-			launchMotor.rotate(120); launchMotor.flt();
+			launchMotor.rotateTo(300);
 		}
 		
 	}
@@ -67,9 +72,5 @@ public class Robonaldo {
 	
 	private static int convertDistance(double radius, double distance) {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
-	}
-	
-	public static EV3LargeRegulatedMotor[] getMotors() {
-		return new EV3LargeRegulatedMotor[] {leftMotor, rightMotor};
 	}
 }

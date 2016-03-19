@@ -68,8 +68,4 @@ public class Robonaldo {
 	private static int convertDistance(double radius, double distance) {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
-	
-	public static EV3LargeRegulatedMotor[] getMotors() {
-		return new EV3LargeRegulatedMotor[] {leftMotor, rightMotor};
-	}
 }
