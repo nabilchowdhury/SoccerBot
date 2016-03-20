@@ -4,7 +4,7 @@ import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 /**
  * Robonaldo instantiates all the threads and operations required at start-up of the program.
- * The iinitial parameters fed into the robot will be received in this class and be passed along to the rest of
+ * The initial parameters fed into the robot will be received in this class and be passed along to the rest of
  * the system. 
  */
 public class Robonaldo {
@@ -14,38 +14,37 @@ public class Robonaldo {
 	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
 	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
 	
+	public static double WIDTH = 18.2;
+	public static double RADIUS = 2.096;
+
 	
 	
 	//MAIN METHOD
 	public static void main(String[] args){
-
 		
 		Odometer odo = new Odometer(leftMotor, rightMotor);
 		Screen screen = new Screen(odo);
 		odo.start();
 		screen.start();
 		
+		// 13.68, 2.096
+		leftMotor.setSpeed(140); rightMotor.setSpeed(140);
 		
-//		Navigation n = new Navigation(odo, leftMotor, rightMotor);
-//		
-//		n.travelTo(30.5, 30.5);
-//		n.travelTo(0, 30.5);
-//		n.travelTo(30.5, 0);
-//		n.travelTo(0, 0);
-//		n.turnTo(0);
-//		leftMotor.setSpeed(150); rightMotor.setSpeed(150);
-//		leftMotor.rotate(convertDistance(2.096, 30.5), true);
-//		rightMotor.rotate(convertDistance(2.096, 30.5), false);
-
+		for(int k=0; k<4; k++){
+			leftMotor.rotate(-convertDistance(RADIUS, 60.48), true);
+			rightMotor.rotate(-convertDistance(RADIUS, 60.48), false);
+			
+			leftMotor.rotate(-convertAngle(RADIUS, WIDTH, Math.PI/2), true);
+			rightMotor.rotate(convertAngle(RADIUS, WIDTH, Math.PI/2), false);
+		}
 		
-		
-		
-		loadMotor.setSpeed(120);
+	
+		/*loadMotor.setSpeed(120);
 		loadMotor.rotateTo(-110);
 		loadMotor.stop();
 		launchMotor.setAcceleration(2000000000);
 		launchMotor.setSpeed(200);
-		launchMotor.rotateTo(360);
+		launchMotor.rotate(360);
 		
 		
 		
@@ -66,7 +65,10 @@ public class Robonaldo {
 			launchMotor.rotate(-300);
 			button = Button.waitForAnyPress();
 			launchMotor.rotateTo(300);
-		}
+		}*/
+		
+		
+		
 		
 	}
 	
