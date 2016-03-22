@@ -5,7 +5,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 /**
  * Class which controls the odometer for the robot
  * 
- * Odometer defines cooridinate system as such...
+ * Odometer defines coordinate system as such...
  * 
  * 					0Deg:pos y-axis
  * 							|
@@ -115,7 +115,7 @@ public class Odometer extends Thread {
 				x += dX;											
 				y += dY;
 				
-				// Bounded theta
+				// Bounded theta: [0, 2pi]
 				if (this.theta > (Math.PI * 2)){
 					this.theta %= (Math.PI * 2);
 				}
@@ -209,14 +209,5 @@ public class Odometer extends Thread {
 		synchronized (lock) {
 			this.theta = theta;
 		}
-	}
-	
-	// delete after usage
-	public EV3LargeRegulatedMotor getLM(){
-		return leftMotor;
-	}
-	
-	public EV3LargeRegulatedMotor getRM(){
-		return rightMotor;
 	}
 }

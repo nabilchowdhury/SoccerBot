@@ -15,7 +15,9 @@ public class Robonaldo {
 	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
 	
 	public static double WIDTH = 18.2;
-	public static double RADIUS = 2.096;
+	public static double RADIUS = 2.05;
+	
+	private final static int FAST = 200, SLOW = 100, REGULAR = 160, SMOOTH = 2000, DEFAULT = 6000; 
 
 	
 	
@@ -30,13 +32,22 @@ public class Robonaldo {
 		// 13.68, 2.096
 		leftMotor.setSpeed(140); rightMotor.setSpeed(140);
 		
+		leftMotor.rotate(-convertDistance(RADIUS, 30.48), true);
+		rightMotor.rotate(-convertDistance(RADIUS, 30.48), false);
+		
+		
+		/*
 		for(int k=0; k<4; k++){
-			leftMotor.rotate(-convertDistance(RADIUS, 60.48), true);
-			rightMotor.rotate(-convertDistance(RADIUS, 60.48), false);
+			//leftMotor.setAcceleration(SLOW);rightMotor.setAcceleration(SLOW);
+			rightMotor.rotate(-convertDistance(RADIUS, 60.48), true);
+			leftMotor.rotate(-convertDistance(RADIUS, 60.48), false);
+			//rightMotor.rotate(-convertDistance(RADIUS, 60.48), false);
 			
+			//leftMotor.setAcceleration(DEFAULT);rightMotor.setAcceleration(DEFAULT);
 			leftMotor.rotate(-convertAngle(RADIUS, WIDTH, Math.PI/2), true);
 			rightMotor.rotate(convertAngle(RADIUS, WIDTH, Math.PI/2), false);
-		}
+
+		}*/
 		
 	
 		/*loadMotor.setSpeed(120);

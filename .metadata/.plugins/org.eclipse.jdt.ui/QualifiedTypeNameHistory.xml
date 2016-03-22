@@ -2,4 +2,6 @@
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="java.awt.Button"/>
 <fullyQualifiedTypeName name="lejos.hardware.Button"/>
+<fullyQualifiedTypeName name="lejos.hardware.motor.EV3LargeRegulatedMotor"/>
+<fullyQualifiedTypeName name="lejos.hardware.Sound"/>
 </qualifiedTypeNameHistroy>

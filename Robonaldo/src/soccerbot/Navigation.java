@@ -16,7 +16,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 public class Navigation {
 	// class constants
 	private final static double W_RADIUS = 2.096;
-	private final static double TRACK = 13.68;
+	private final static double W_BASE = 18.2;
 	private final static int FAST = 200, SLOW = 100, REGULAR = 160, SMOOTH = 500, DEFAULT = 6000;
 	private final static double DEG_ERR = 0.05, CM_ERR = 0.5;
 	
@@ -29,10 +29,10 @@ public class Navigation {
 	private Object lock;
 	
 	/**
-	 * This contuctor assumes two <code>EV3LargeRegualtedMotor</code> objects are linked to the brick 
+	 * This constructor assumes two <code>EV3LargeRegualtedMotor</code> objects are linked to the brick 
 	 * and also requires an <code>Odometer</code> to process navigation.
 	 * 
-	 * @param odometer The odometer object used to retreive coordinates and heading
+	 * @param odometer The odometer object used to retrieve coordinates and heading
 	 * @param leftMotor One of two EV3LargeRegulatedMotor objects passed to navigate the robot
 	 * @param rightMOtor Second EV3LargeRegualtedMotor object passed to navigate the robot
 	 */
@@ -45,8 +45,8 @@ public class Navigation {
 	
 	/**
 	 * Travels to the specified coordinate (x, y).
-	 * The current x and y positions of the robot is retreived from the Odometer
-	 * where the specificed coordiantes and the current coordinates are used to determine
+	 * The current x and y positions of the robot is retrieved from the Odometer
+	 * where the specified coordinates and the current coordinates are used to determine
 	 * the correct heading the robot should face before attempting to travel to 
 	 * the desired coordinate. 
 	 * <p>
@@ -59,31 +59,16 @@ public class Navigation {
 	 *  @param y Y-position of the desired coordinate
 	 *  @see Odometer
 	 */
-	public void travelTo(double x, double y){		
-		synchronized(lock){
-
-			double odoX = odometer.getX();
-			double odoY = odometer.getY();
-			double odoTheta = odometer.getTheta();
-			double heading = Math.atan2(x-odoX, y-odoY);
-			double angularError;
-			
-			while (euclidianDist(odoX, odoY, x, y) > CM_ERR) {
-				angularError = Math.abs(heading - odoTheta);
-				if(angularError > DEG_ERR){
-					turnTo(angleToHeading(x, y));
-				}
-				
-				setSpeeds(REGULAR, REGULAR, true, SMOOTH);
-				
-				// (make simpler later)
-				// Update current position
-				odoX = odometer.getX();
-				odoY = odometer.getY();
-				odoTheta = odometer.getTheta();
-			}
-			//stopMotors();
+	public void travelTo(double x, double y) {
+		double minimumTheta;
+		while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
+			minimumTheta = (Math.atan2(y - odometer.getY(), x - odometer.getX())) * (180.0 / Math.PI);
+			if (minimumTheta < 0)
+				minimumTheta += 360.0;
+			this.turnTo(minimumTheta, false);
+			this.setSpeeds(SLOW, SLOW, true, SMOOTH);
 		}
+		stopMotors();
 	}
 	
 	/**
@@ -92,11 +77,28 @@ public class Navigation {
 	 * @param theta Absolute angle from the y-axis to turn to
 	 * @see Odometer
 	 */
-	public void turnTo(double theta){	
-		synchronized(lock){
-			setSpeeds(SLOW, SLOW, true, DEFAULT);
-			leftMotor.rotate(convertAngle(W_RADIUS, TRACK, theta), true);	
-			rightMotor.rotate(-convertAngle(W_RADIUS, TRACK, theta), false);
+	
+	public void turnTo(double angle, boolean stop) {
+
+		double error = angle - this.odometer.getTheta();
+
+		while (Math.abs(error) > DEG_ERR) {
+
+			error = angle - this.odometer.getTheta();
+
+			if (error < -Math.PI) {
+				this.setSpeeds(-SLOW, SLOW, true, DEFAULT);
+			} else if (error < 0.0) {
+				this.setSpeeds(SLOW, -SLOW, true, DEFAULT);
+			} else if (error > Math.PI) {
+				this.setSpeeds(SLOW, -SLOW, true, DEFAULT);
+			} else {
+				this.setSpeeds(-SLOW, SLOW, true, DEFAULT);
+			}
+		}
+
+		if (stop) {
+			stopMotors();
 		}
 	}
 	
@@ -109,7 +111,7 @@ public class Navigation {
 	 * @param distance Absolute distance in cm
 	 * @return Degrees wheel is required to rotate
 	 */
-	private static int convertDistance(double radius, double distance) {
+	private int convertDistance(double radius, double distance) {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
 	
@@ -122,19 +124,19 @@ public class Navigation {
 	 * 
 	 * @param radius Radius of wheel being rotated in cm
 	 * @param width Wheel-to-wheel distance measured in cm from the center of each wheel
-	 * @param angle Absolute angle to be rotated in rads
+	 * @param angle Absolute angle to be rotated in radians
 	 * @return Degrees wheel is required to rotate
 	 * @see convertDistance(dobule radius, double distance)
 	 * 
 	 */
-	private static int convertAngle(double radius, double width, double angle) {
+	private int convertAngle(double radius, double width, double angle) {
 		return convertDistance(radius, width * angle / 2);
 	}
 	
 	/**
 	 * Calculate the absolute angle to orient this robot toward the coordinate (x, y).
 	 * This method is called in the <code>travelTo</code> method to orient this robot toward
-	 * the desied coordinate before starting its motion toward it.
+	 * the desired coordinate before starting its motion toward it.
 	 * 
 	 * @param x X-position of coordinate to turn to
 	 * @param y Y-position of coordinate to turn to
@@ -165,7 +167,7 @@ public class Navigation {
 	 * @param rightSpeed Speed of right motor
 	 * @param move Begin motion of motors if <code>true</code> otherwise do nothing
 	 */
-	private void setSpeeds(int leftSpeed, int rightSpeed, boolean move, int acceleration){
+	public void setSpeeds(int leftSpeed, int rightSpeed, boolean move, int acceleration){
 		leftMotor.setSpeed(leftSpeed);
 		rightMotor.setSpeed(rightSpeed);
 		leftMotor.setAcceleration(acceleration);
@@ -189,17 +191,13 @@ public class Navigation {
 		}
 	}
 	
-	private void stopMotors(){
+	public void stopMotors(){
 		leftMotor.setAcceleration(DEFAULT);
 		rightMotor.setAcceleration(DEFAULT);
 		leftMotor.setSpeed(0);
 		rightMotor.setSpeed(0);
 		leftMotor.backward();
 		rightMotor.backward();
-	}
-	
-	private double euclidianDist(double x1, double y1, double x2, double y2){
-		return Math.sqrt(Math.pow(y2-y1, 2) + Math.pow(x2 - x1, 2));
 	}
 	
 }
