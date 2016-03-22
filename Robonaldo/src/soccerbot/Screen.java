@@ -12,7 +12,6 @@ public class Screen extends Thread{
 	private TextLCD t = LocalEV3.get().getTextLCD();
 	Odometer odometer;
 	private static final long DISPLAY_PERIOD = 250;
-	
 	/**
 	 * @param odometer The <code>Odometer</code> to be polled for information
 	 */
@@ -34,9 +33,10 @@ public class Screen extends Thread{
 			displayStart = System.currentTimeMillis();
 
 			// clear the lines for displaying odometry information
-			t.drawString("x: "+(Math.round(odometer.getX() * 100.0)/100.0), 0, 0);
-			t.drawString("y: "+(Math.round(odometer.getY() * 100.0)/100.0), 0, 1);
-			t.drawString("t: "+((Math.toDegrees(odometer.getTheta())* 100.0)/100.0), 0, 2);
+			t.drawString("x: "+/*(Math.round(odometer.getX() * 100.0)/100.0)*/odometer.getX(), 0, 0);
+			t.drawString("y: "+/*(Math.round(odometer.getY() * 100.0)/100.0)*/odometer.getY(), 0, 1);
+			t.drawString("t: "+((Math.toDegrees(odometer.getTheta())/* * 100.0)/100.0*/)), 0, 2);			
+
 			
 			// throttle the OdometryDisplay
 			displayEnd = System.currentTimeMillis();

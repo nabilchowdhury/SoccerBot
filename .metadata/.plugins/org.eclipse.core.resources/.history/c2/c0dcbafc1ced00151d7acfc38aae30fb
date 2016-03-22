@@ -1,0 +1,71 @@
+package soccerbot;
+import lejos.hardware.Button;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+/**
+ * Robonaldo instantiates all the threads and operations required at start-up of the program.
+ * The iinitial parameters fed into the robot will be received in this class and be passed along to the rest of
+ * the system. 
+ */
+public class Robonaldo {
+	
+	public static final EV3LargeRegulatedMotor loadMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+	public static final EV3LargeRegulatedMotor launchMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
+	
+	
+	
+	//MAIN METHOD
+	public static void main(String[] args){
+
+		
+		Odometer odo = new Odometer(leftMotor, rightMotor);
+		Screen screen = new Screen(odo);
+		odo.start();
+		screen.start();
+		
+		
+		Navigation n = new Navigation(odo, leftMotor, rightMotor);
+		
+		n.travelTo(30.5, 30.5);
+		n.travelTo(0, 30.5);
+		n.travelTo(30.5, 0);
+		n.travelTo(0, 0);
+		n.turnTo(0);
+//		leftMotor.setSpeed(150); rightMotor.setSpeed(150);
+//		leftMotor.rotate(convertDistance(2.096, 30.5), true);
+//		rightMotor.rotate(convertDistance(2.096, 30.5), false);
+
+		
+		
+		/*
+		loadMotor.setSpeed(120);
+		loadMotor.rotateTo(-110);
+		loadMotor.stop();
+		launchMotor.setAcceleration(200000000);
+		int button = Button.waitForAnyPress();
+		while(button == Button.ID_ENTER){
+			loadMotor.setAcceleration(150);			
+			loadMotor.rotateTo(110);
+			loadMotor.setSpeed(70);
+			loadMotor.rotateTo(-110);
+			loadMotor.stop();
+			button = Button.waitForAnyPress();
+			
+			launchMotor.setSpeed(700);
+			launchMotor.rotate(-120);
+			button = Button.waitForAnyPress();
+			launchMotor.rotate(120); launchMotor.flt();
+		}
+		*/
+	}
+	
+	private static int convertAngle(double radius, double width, double angle) {
+		return convertDistance(radius, width * angle / 2);
+	}
+	
+	private static int convertDistance(double radius, double distance) {
+		return (int) ((180.0 * distance) / (Math.PI * radius));
+	}
+}

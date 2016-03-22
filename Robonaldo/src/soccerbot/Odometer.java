@@ -5,7 +5,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 /**
  * Class which controls the odometer for the robot
  * 
- * Odometer defines cooridinate system as such...
+ * Odometer defines coordinate system as such...
  * 
  * 					0Deg:pos y-axis
  * 							|
@@ -23,7 +23,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
  */
 public class Odometer extends Thread {
 	// class constants: robot dimensions
-	private static final double W_BASE = 15.47;	
+	private static final double W_BASE = 18.2;	
 	private static final double W_RADIUS = 2.096;
 	
 	// odometer update period, in ms
@@ -76,8 +76,8 @@ public class Odometer extends Thread {
 		rightMotor.resetTachoCount();
 		
 		// set initial values of lastTacho
-		lastTachoL = leftMotor.getTachoCount();
-		lastTachoR = rightMotor.getTachoCount();
+		lastTachoL = -leftMotor.getTachoCount();
+		lastTachoR = -rightMotor.getTachoCount();
 		
 		
 		while (true) {
@@ -87,8 +87,8 @@ public class Odometer extends Thread {
 				// don't use the variables x, y, or theta anywhere but here!
 				
 				// get current tacho counts for each wheel
-				nowTachoL = leftMotor.getTachoCount();
-				nowTachoR = rightMotor.getTachoCount();
+				nowTachoL = -leftMotor.getTachoCount();
+				nowTachoR = -rightMotor.getTachoCount();
 				
 				// calculate left and right wheel displacements
 				distL = Math.PI*W_RADIUS*(nowTachoL - lastTachoL)/180;
@@ -115,9 +115,13 @@ public class Odometer extends Thread {
 				x += dX;											
 				y += dY;
 				
-				// Bounded theta
-				if (this.theta > (Math.PI * 2)) this.theta %= (Math.PI * 2);
-				if (this.theta < 0) this.theta += (Math.PI * 2);
+				// Bounded theta: [0, 2pi]
+				if (this.theta > (Math.PI * 2)){
+					this.theta %= (Math.PI * 2);
+				}
+				if (this.theta < 0){
+					this.theta += (Math.PI * 2);
+				}
 				
 			}
 
