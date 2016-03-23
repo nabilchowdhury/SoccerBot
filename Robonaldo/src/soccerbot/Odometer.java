@@ -5,19 +5,9 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 /**
  * Class which controls the odometer for the robot
  * 
- * Odometer defines coordinate system as such...
- * 
- * 					0Deg:pos y-axis
- * 							|
- * 							|
- * 							|
- * 							|
- * 270Deg:neg x-axis------------------90Deg:pos x-axis
- * 							|
- * 							|
- * 							|
- * 							|
- * 					180Deg:neg y-axis
+ * Odometer defines coordinate system as such: 
+ * <p>
+ * 	0Deg:pos y-axis -> 90Deg:pos x-axis -> 180Deg:neg y-axis -> 270Deg:neg x-axis
  * 
  * The odometer is initalized to 0 degrees, assuming the robot is facing up the positive y-axis
  */

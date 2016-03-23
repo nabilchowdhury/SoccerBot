@@ -4,8 +4,13 @@ import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 /**
- * TODO
- *
+ * USLocalizer performs the tasks required for localizing the robot 
+ * using the ultrasonic sensor at startup.
+ * 
+ * The robot's center of rotation must initially intersect with the corner-to-corner diagonal of the field.
+ * This clsss will use the 'rising edges' during wall detection and the diagonal to determine the true 0 degrees.
+ * 
+ * @see Odometer
  */
 public class USLocalizer {
 	
@@ -20,7 +25,16 @@ public class USLocalizer {
 	private EV3LargeRegulatedMotor leftMotor;
 	private EV3LargeRegulatedMotor rightMotor;
 	
-	// Constructor
+	/**
+	 * This constructor needs the odometer to be able to update its heading and a USPoller
+	 * to receive its polled data to determine the rising edges. Motors are necessary so that we may rotate 
+	 * the robot in place.
+	 * 
+	 * @param odometer The odometer object that will be used
+	 * @param poller Polls the Ultrasonic sensor and retrieves data from it
+	 * @param leftMotor This robot's left motor
+	 * @param rightMotor This robot's right motor
+	 */
 	USLocalizer(Odometer odometer, USPoller poller, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor){
 		this.odo = odometer;
 		this.usPoller = poller;
@@ -28,6 +42,11 @@ public class USLocalizer {
 		this.rightMotor = rightMotor;
 	}
 	
+	/**
+	 * This method performs the rising edge localization. It will allow the robot to rotate and detect walls until 
+	 * the moment it doesn't. We call this the rising edge. When taking note of the rising edges, we are able to determine
+	 * true north and update the odometer to reflect this.
+	 */
 	public void Localize(){
 		double [] pos = new double [3];
 		double angleA; double angleB;
@@ -102,12 +121,15 @@ public class USLocalizer {
 		
 		// Correct robot to approximately 0 deg heading
 		if(angleA < angleB){
-			deltaT = 43- (angleA+angleB)/2;
+			deltaT = 45 - (angleA+angleB)/2;
 		}else {
-			deltaT = 225- (angleA+angleB)/2;
+			deltaT = 225 - (angleA+angleB)/2;
 		}
 		
 		double correctionAngle = angleB + deltaT;
+		
+		// Update odometer angle
+		this.odo.setTheta(correctionAngle);
 		
 		navigate.turnTo(correctionAngle, false);
 	}

@@ -4,8 +4,8 @@ import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 
 /**
- * Screen handles information grabbed from the Dometer to be outputed to
- * the LCD Screen. This screen is refresed every 250 ms. 
+ * Screen handles information grabbed from the Odometer to be outputed to
+ * the LCD Screen. This screen is refreshed every 250 ms. 
  * Both one and only one Odometer and Screen can exist.
  */
 public class Screen extends Thread{
@@ -20,7 +20,7 @@ public class Screen extends Thread{
 	}
 	
 	/**
-	 * The current x and y poisiton and heading are drawn to the screen and refreshed every 250 ms
+	 * The current x and y position and heading are drawn to the screen and refreshed every 250 ms
 	 * 
 	 * @see java.lang.Thread#run()
 	 */
