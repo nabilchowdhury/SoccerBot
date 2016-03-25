@@ -1,0 +1,336 @@
+package ev3Localization;
+
+import lejos.hardware.Sound;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.TextLCD;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.robotics.SampleProvider;
+
+public class USLocalizer {
+	public enum LocalizationType { FALLING_EDGE, RISING_EDGE };
+	public static int ROTATION_SPEED = 60;	// Rotating speed
+
+	private Odometer odo;
+	private SampleProvider usSensor;
+	private float[] usData;
+	private LocalizationType locType;
+	private EV3LargeRegulatedMotor leftMotor;
+	private EV3LargeRegulatedMotor rightMotor;
+	
+	// Class constants
+	private final double WHEEL_RADIUS = 2.096;
+	private final double TRACK = 15.92;
+	private final int FILTER_OUT = 3;
+	
+	
+	
+	private float distance;
+	private int filterControl;
+	
+	private TextLCD t = LocalEV3.get().getTextLCD();
+	
+	// Constructor
+	public USLocalizer(Odometer odo,  SampleProvider usSensor, float[] usData, LocalizationType locType, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor) {
+		t.clear();
+		this.odo = odo;
+		this.usSensor = usSensor;
+		this.usData = usData;
+		this.locType = locType;
+		this.leftMotor = leftMotor;
+		this.rightMotor = rightMotor;
+	}
+	
+	// 
+	public void doLocalization() {
+		double [] pos = new double [3];
+		double angleA; double angleB;
+		
+		// Constants
+		
+		final int dHigh = 41;
+		final int dLow = 39;
+					
+	    // Temporary variables used to calculate angleA and angleB
+		Double angleHigh = null;
+		Double angleLow = null;
+		double deltaT = 0;
+		
+		Navigation navigate = new Navigation(odo);
+		
+		if (locType == LocalizationType.FALLING_EDGE) {		
+			// FALLING EDGE
+			// INITIATE CLOCKWISE SEQUENCE
+			leftMotor.setSpeed(ROTATION_SPEED);
+			rightMotor.setSpeed(ROTATION_SPEED);
+			
+			leftMotor.backward();
+			rightMotor.forward();
+						
+			// If robot starts facing a wall, continue to turn until it is no longer facing any walls
+			while(getFilteredData() < dHigh){
+				// Display distance
+				t.drawString("Distance: "+getFilteredData(), 0, 4);
+				//empty loop
+				try{
+					Thread.sleep(50);
+				}catch(Exception e){
+					
+				}
+			}
+			
+			// Loops until it detects back wall	
+			this.distance = getFilteredData();
+			
+			// Infinite loop
+			while(true){
+				
+				// Filters distance
+				filterDistance();
+				
+				// Display distance
+				t.drawString("Distance: " + this.distance, 0, 4);
+				
+				//Detect first wall and set angleHigh and angleLow
+				if(this.distance <= dHigh && angleHigh == null){
+					angleHigh = odo.getAng();
+				}else if(this.distance <= dLow && angleHigh != null){
+					angleLow = odo.getAng();
+				}
+				
+				//If both angles are set, calculate angle A and break out of loop
+				if(angleHigh != null && angleLow != null){
+					angleA = (angleHigh+angleLow)/2;
+					angleHigh = null;
+					angleLow = null;
+					
+					//Stop motors briefly
+					leftMotor.setSpeed(0);
+					rightMotor.setSpeed(0);
+					leftMotor.backward();
+					rightMotor.backward();
+					Sound.beep();
+					break;
+					
+				}
+							
+			}
+			
+			
+			// INITIATE COUNTERCLOCKWISE SEQUENCE
+			leftMotor.setSpeed(ROTATION_SPEED);
+			rightMotor.setSpeed(ROTATION_SPEED);
+			
+			leftMotor.forward();
+			rightMotor.backward();
+			
+			
+			// Filter
+			while(getFilteredData() < dHigh){
+				t.drawString("Distance: "+getFilteredData(), 0, 4);
+				//empty loop
+			}
+			
+			this.distance = getFilteredData();
+			
+			while(true){
+				// Filter distance
+				filterDistance();
+				// Display distance
+				t.drawString("Distance: " + this.distance, 0, 4);
+				
+				// Obtain high and low angles for angle B
+				if(this.distance <= dHigh && angleHigh == null){
+					angleHigh = odo.getAng();
+				}else if(this.distance <= dLow && angleHigh != null){
+					angleLow = odo.getAng();
+				}
+				
+				// Calculate angle B and break out of loop
+				if(angleHigh != null && angleLow != null){
+					angleB = (angleHigh+angleLow)/2;
+					angleHigh = null;
+					angleLow = null;
+					
+					//Stop motors briefly
+					leftMotor.setSpeed(0);
+					rightMotor.setSpeed(0);
+					leftMotor.backward();
+					rightMotor.backward();
+					Sound.beep();
+					break;
+					
+				}
+				
+			}
+			
+			
+			// Position robot to approximately 0 degrees heading
+			leftMotor.setSpeed(ROTATION_SPEED);
+			rightMotor.setSpeed(ROTATION_SPEED);
+			
+			if(angleA < angleB){
+				deltaT = 44 - (angleA+angleB)/2;
+			}else {
+				deltaT = 225 - (angleA+angleB)/2;
+			}
+			
+			double correctionAngle = angleB + deltaT;
+			
+			navigate.turnToRelative(correctionAngle/57.29578, false);
+			
+			// Set position to approximately 0, 0, 0
+			odo.setPosition(new double [] {0.0, 0.0, 0.0}, new boolean [] {true, true, true});
+			
+		} else {
+			// RISING EDGE
+			leftMotor.setSpeed(ROTATION_SPEED);
+			rightMotor.setSpeed(ROTATION_SPEED);
+			
+			leftMotor.forward();
+			rightMotor.backward();
+			
+			//INITIATE COUNTERCLOCKWISE SEQUENCE
+						
+			// If robot starts facing away from a wall, continue to turn until it is facing a wall
+			while(getFilteredData() > dLow){
+				t.drawString("Distance: "+getFilteredData(), 0, 4);
+				//empty loop
+			}
+			
+
+			this.distance = getFilteredData();
+			
+			// Initiate angle calculation
+			while(true){	
+				
+				filterDistance();
+				
+				t.drawString("Distance: " + this.distance, 0, 4);
+				
+				// Obtain both angles when instantaneously facing away from wall
+				if(this.distance >= dLow && angleHigh == null){
+					angleHigh = odo.getAng();
+				}else if(this.distance >= dHigh && angleHigh != null){
+					angleLow = odo.getAng();
+				}
+				
+				// Calculate angleA and break out of loop
+				if(angleHigh != null && angleLow != null){
+					angleA = (angleHigh+angleLow)/2;
+					angleHigh = null;
+					angleLow = null;
+					
+					//Stop motors briefly
+					leftMotor.setSpeed(0);
+					rightMotor.setSpeed(0);
+					leftMotor.backward();
+					rightMotor.backward();
+					Sound.beep();
+					break;
+				}
+				
+							
+			}
+			
+			
+			// INITIATE CLOCKWISE SEQUENCE
+			leftMotor.setSpeed(ROTATION_SPEED);
+			rightMotor.setSpeed(ROTATION_SPEED);
+			
+			leftMotor.backward();
+			rightMotor.forward();
+			
+			// Empty loop used to filter out if robot begins facing wall (this is a precautionary step)
+			while(getFilteredData() > dLow){
+				t.drawString("Distance: "+getFilteredData(), 0, 4);
+				//empty loop
+				try{
+					Thread.sleep(50);
+				}catch(Exception e){
+					
+				}
+			}
+			
+			this.distance = getFilteredData();
+			
+			while(true){
+				// Filter distance
+				filterDistance();
+				// Display distance
+				t.drawString("Distance: " + this.distance, 0, 4);
+				
+				// Set high and low angles
+				if(this.distance >= dLow && angleHigh == null){
+					angleHigh = odo.getAng();
+				}else if(this.distance >= dHigh && angleHigh != null){
+					angleLow = odo.getAng();
+				}
+				
+				// Calculate both angles and break out of loop
+				if(angleHigh != null && angleLow != null){
+					angleB = (angleHigh+angleLow)/2;
+					angleHigh = null;
+					angleLow = null;
+					
+					//Stop motors briefly
+					leftMotor.setSpeed(0);
+					rightMotor.setSpeed(0);
+					leftMotor.backward();
+					rightMotor.backward();
+					Sound.beep();
+					break;
+					
+				}
+				
+			}
+			
+			
+			// Correct robot to approximately 0 deg heading
+			leftMotor.setSpeed(ROTATION_SPEED);
+			rightMotor.setSpeed(ROTATION_SPEED);
+			
+			if(angleA < angleB){
+				deltaT = 43- (angleA+angleB)/2;
+			}else {
+				deltaT = 225- (angleA+angleB)/2;
+			}
+			
+			double correctionAngle = angleB + deltaT;
+			
+			navigate.turnToRelative(correctionAngle/57.29578, false);
+			
+			// Set position to 0, 0, 0
+			odo.setPosition(new double [] {0.0, 0.0, 0.0}, new boolean [] {true, true, true});
+		}
+	}
+	
+	
+	
+	private float getFilteredData() {
+		usSensor.fetchSample(usData, 0);
+		float distance = usData[0]*100;	// converts to cm
+		
+		if(distance > 50){
+			distance = 50;
+		}
+		
+		return distance;
+	}
+	
+	
+	
+	private void filterDistance(){
+		if (getFilteredData() >= 45 && filterControl < FILTER_OUT) {
+			// bad value, do not set the distance var, however do increment the filter value
+			filterControl ++;
+		} else if (getFilteredData() >= 45){
+			// true 255, therefore set distance to 255
+			this.distance = getFilteredData();
+		} else {
+			// distance went below 255, therefore reset everything.
+			filterControl = 0;
+			this.distance = getFilteredData();
+		}
+	}
+
+}

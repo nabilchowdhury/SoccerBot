@@ -1,0 +1,85 @@
+package soccerbot;
+import lejos.hardware.Button;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.TextLCD;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
+import lejos.robotics.SampleProvider;
+/**
+ * Robonaldo instantiates all the threads and operations required at start-up of the program.
+ * The initial parameters fed into the robot will be received in this class and be passed along to the rest of
+ * the system. 
+ */
+public class Robonaldo {
+	
+	public static final EV3LargeRegulatedMotor loadMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+	public static final EV3LargeRegulatedMotor launchMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
+	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+	
+	public static final EV3UltrasonicSensor usSensorR = new EV3UltrasonicSensor(SensorPort.S1);
+	public static final EV3UltrasonicSensor usSensorL = new EV3UltrasonicSensor(SensorPort.S2);
+	
+	
+	public static double WIDTH = 18.2;
+	public static double RADIUS = 2.072;
+	
+	private final static int FAST = 200, SLOW = 100, REGULAR = 160, SMOOTH = 2000, DEFAULT = 6000; 
+
+	public static TextLCD t = LocalEV3.get().getTextLCD();
+	
+	//MAIN METHOD
+	public static void main(String[] args){
+		
+		leftMotor.setAcceleration(SMOOTH);
+		rightMotor.setAcceleration(DEFAULT);
+		leftMotor.setSpeed(120); rightMotor.setSpeed(120);
+		
+		leftMotor.rotate(-convertDistance(RADIUS, 300), true);
+		rightMotor.rotate(-convertDistance(RADIUS, 300), false);
+		
+		/*
+		Odometer odo = new Odometer(leftMotor, rightMotor);
+		
+		SampleProvider us = usSensorL.getMode("Distance");
+		float[] usData = usData = new float[usSensorL.sampleSize()];
+		us.fetchSample(usData, 0);
+		
+		while(true){
+			us.fetchSample(usData, 0);
+			int distance = (int)(usData[0]*100);
+			t.drawInt(distance,0,0);
+			try{
+				Thread.sleep(50);
+			}catch(Exception e){};
+		}*/
+		
+		/*
+		USPoller usPollerL = new USPoller(usSensorL); 
+		USPoller usPollerR = new USPoller(usSensorR);
+		usPollerL.start();
+		usPollerR.start();*/
+		//USLocalizer usLocalizer = new USLocalizer(odo, usPollerL, usPollerR, leftMotor, rightMotor);
+		/*while(true){
+			t.drawString("Left US: "+usPollerL.getDistance(),0,0);
+			t.drawString("Right US: "+usPollerR.getDistance(),0,1);
+		}*/
+		//usLocalizer.localize();
+		
+	}
+	
+	
+	private static int convertAngle(double radius, double width, double angle) {
+		return convertDistance(radius, width * angle / 2);
+	}
+	
+	private static int convertDistance(double radius, double distance) {
+		return (int) ((180.0 * distance) / (Math.PI * radius));
+	}
+	
+	public static EV3LargeRegulatedMotor[] getMotors(){
+		EV3LargeRegulatedMotor[] m = {leftMotor, rightMotor};
+		return m;
+	}
+}

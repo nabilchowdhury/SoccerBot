@@ -16,12 +16,14 @@ public class USLocalizer {
 	
 	// Constants
 	private static final int ROTATION_SPD = 100;
-	private static final int D_HIGH = 41;
-	private static final int D_LOW = 39;
+	private static final int D_HIGH = 35;
+	private static final int D_LOW = 33;
 	private static final int ACC = 6000;
 	
 	private Odometer odo;
-	private USPoller usPoller;
+	private Navigation navigate;
+	private USPoller usPollerL;
+	private USPoller usPollerR;
 	private EV3LargeRegulatedMotor leftMotor;
 	private EV3LargeRegulatedMotor rightMotor;
 	
@@ -35,9 +37,11 @@ public class USLocalizer {
 	 * @param leftMotor This robot's left motor
 	 * @param rightMotor This robot's right motor
 	 */
-	USLocalizer(Odometer odometer, USPoller poller, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor){
+	USLocalizer(Odometer odometer,Navigation navigate, USPoller pollerL, USPoller pollerR, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor){
 		this.odo = odometer;
-		this.usPoller = poller;
+		this.navigate = navigate;
+		this.usPollerL = pollerL;
+		this.usPollerR = pollerR;
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
 	}
@@ -47,7 +51,8 @@ public class USLocalizer {
 	 * the moment it doesn't. We call this the rising edge. When taking note of the rising edges, we are able to determine
 	 * true north and update the odometer to reflect this.
 	 */
-	public void Localize(){
+	public void localize(){
+		Robonaldo.loadMotor.stop();
 		double [] pos = new double [3];
 		double angleA; double angleB;
 		
@@ -61,17 +66,21 @@ public class USLocalizer {
 		// RISING EDGE
 		
 		//INITIATE COUNTERCLOCKWISE SEQUENCE
-		navigate.setSpeeds(ROTATION_SPD, -ROTATION_SPD, true, ACC);
+		navigate.setSpeeds(-ROTATION_SPD, ROTATION_SPD, true);
 		
 		// If robot starts facing away from a wall, continue to turn until it is facing a wall
-		while(usPoller.getDistance() > D_LOW){
+		while(usPollerL.getDistance() > D_LOW){
 			//empty loop
+			//Robonaldo.t.drawString(""+usPollerL.getDistance(),0,0);
+
 		}
 		
 		while(true){
-			if(usPoller.getDistance() >= D_LOW && angleHigh == null){
+			//Robonaldo.t.drawString(""+usPollerL.getDistance(),0,0);
+			
+			if(usPollerL.getDistance() >= D_LOW && angleHigh == null){
 				angleHigh = odo.getTheta();
-			}else if(usPoller.getDistance() >= D_HIGH && angleHigh != null){
+			}else if(usPollerL.getDistance() >= D_HIGH && angleHigh != null){
 				angleLow = odo.getTheta();
 			}
 			
@@ -89,18 +98,22 @@ public class USLocalizer {
 		}
 		
 		// INITIATE CLOCKWISE SEQUENCE
-		navigate.setSpeeds(-ROTATION_SPD, ROTATION_SPD, true, ACC);
+		navigate.setSpeeds(ROTATION_SPD, -ROTATION_SPD, true);
 		
 		// Empty loop used to filter out if robot begins facing wall (this is a precautionary step)
-		while(usPoller.getDistance() > D_LOW){
+		while(usPollerR.getDistance() > D_LOW){
 			//empty loop
+			//Robonaldo.t.drawString(""+usPollerR.getDistance(),0,1);
+			
 		}
 		
 		while(true){
+			//Robonaldo.t.drawString(""+usPollerR.getDistance(),0,1);
+			
 			// Set high and low angles
-			if(usPoller.getDistance() >= D_HIGH && angleHigh == null){
+			if(usPollerR.getDistance() >= D_HIGH && angleHigh == null){
 				angleHigh = odo.getTheta();
-			}else if(usPoller.getDistance() >= D_HIGH && angleHigh != null){
+			}else if(usPollerR.getDistance() >= D_HIGH && angleHigh != null){
 				angleLow = odo.getTheta();
 			}
 			
@@ -129,9 +142,9 @@ public class USLocalizer {
 		double correctionAngle = angleB + deltaT;
 		
 		// Update odometer angle
-		this.odo.setTheta(correctionAngle);
-		
-		navigate.turnTo(correctionAngle, false);
+		//this.odo.setTheta(correctionAngle);
+		navigate.turnTo(correctionAngle, true);
+		Sound.buzz();
 	}
 	
 	

@@ -1,0 +1,13 @@
+package localizationtest;
+
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
+
+public class TestUltrasonic {
+	
+	public EV3UltrasonicSensor usSensor = new EV3UltrasonicSensor(SensorPort.S2);
+	
+	public static void main(String[] args){
+		
+	}
+}

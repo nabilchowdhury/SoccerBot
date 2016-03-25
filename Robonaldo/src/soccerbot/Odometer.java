@@ -13,8 +13,8 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
  */
 public class Odometer extends Thread {
 	// class constants: robot dimensions
-	private static final double W_BASE = 18.2;	
-	private static final double W_RADIUS = 2.096;
+	private static final double W_BASE = 19.17;	
+	private static final double W_RADIUS = 2.072;
 	
 	// odometer update period, in ms
 	private static final long ODOMETER_PERIOD = 25;

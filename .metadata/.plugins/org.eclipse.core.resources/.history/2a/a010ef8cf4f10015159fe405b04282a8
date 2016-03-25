@@ -1,0 +1,30 @@
+package localizationtest;
+
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.TextLCD;
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
+
+public class TestUltrasonic extends Thread{
+	
+	public static EV3UltrasonicSensor usSensor = new EV3UltrasonicSensor(SensorPort.S2);
+	public static TextLCD t = LocalEV3.get().getTextLCD();
+	
+	public static void main(String[] args){
+		TestUltrasonic tu = new TestUltrasonic();
+		tu.start();
+
+	}
+	
+	public void run(){
+		USPoller poller = new USPoller(usSensor);
+		poller.start();
+		while(true){
+			t.drawString("L: "+poller.getDistance(), 0, 0);
+			try{
+				Thread.sleep(50);
+			}catch(Exception e){}
+			
+		}
+	}
+}
