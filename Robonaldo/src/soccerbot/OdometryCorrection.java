@@ -32,7 +32,7 @@ public class OdometryCorrection extends Thread {
 		this.odometer = odometer;
 		
 		// Initiate color sensor detection system
-		this.colorSensor = new EV3ColorSensor(SensorPort.S1);
+		this.colorSensor = new EV3ColorSensor(SensorPort.S3);
 		this.cs = colorSensor.getRedMode();
 		int sampleSize = colorSensor.sampleSize();
 		csData = new float[sampleSize];
@@ -46,9 +46,14 @@ public class OdometryCorrection extends Thread {
 		
 		// Perpendicular distance from center of tile to black line
 		double length = 15.24;	//in cm
-		
+		try{
+			Thread.sleep(3000);
+		}catch(Exception e){}
 		while (true) {
+			
 			correctionStart = System.currentTimeMillis();
+			
+			if(Robonaldo.leftMotor.getRotationSpeed() == Robonaldo.rightMotor.getRotationSpeed()){
 			
 			// Obtain color sensor data
 			cs.fetchSample(csData, 0);
@@ -93,6 +98,11 @@ public class OdometryCorrection extends Thread {
 					multiplier = (int)(5*(Math.round(xPos/15)));
 					odometer.setX(multiplier*length);
 				}
+				
+				try{
+					Thread.sleep(2000);
+				}catch(Exception e){}
+				
 			}
 			
 
@@ -106,6 +116,8 @@ public class OdometryCorrection extends Thread {
 					// expected that the odometry correction will be
 					// interrupted by another thread
 				}
+			}
+			
 			}
 		}
 	}

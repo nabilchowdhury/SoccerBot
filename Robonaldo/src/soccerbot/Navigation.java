@@ -16,9 +16,9 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 public class Navigation {
 	// class constants
 	private final static double W_RADIUS = 2.072;
-	private final static double W_BASE = 19.17;
-	private final static int FAST = 200, SLOW = 120, REGULAR = 160, SMOOTH = 500, DEFAULT = 6000;
-	private final static double DEG_ERR = 0.05, CM_ERR = 0.5;
+	private final static double W_BASE = 19.05;
+	private final static int FAST = 200, SLOW = 160, REGULAR = 160, SMOOTH = 500, DEFAULT = 6000;
+	private final static double DEG_ERR = 0.05, CM_ERR = 0.4;
 	
 	// motors
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
@@ -60,18 +60,32 @@ public class Navigation {
 	 *  @see Odometer
 	 */
 	public void travelTo(double x, double y) {
-		double minimumTheta;
+		double thetaD;
+		//x = x*30.33;
+		//y = y*30.33;
 		while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
 			
-			minimumTheta = (Math.atan2(x - odometer.getX(), y - odometer.getY()));
+			thetaD = (Math.atan2(x - odometer.getX(), y - odometer.getY()));
 			this.setSpeeds(SLOW, SLOW, true);
 			
-			if (minimumTheta < 0){
-				minimumTheta += Math.PI*2;
+			//theta from 0 to 2PI
+			if (thetaD < 0){
+				thetaD += Math.PI*2;
 			}
-			turnTo(minimumTheta, false);
-			Robonaldo.t.drawString(""+Math.toDegrees(minimumTheta),0,4);
 			
+			double angularError = thetaD - this.odometer.getTheta();
+			
+			if(angularError > Math.PI){
+				angularError -= Math.PI*2;
+			}
+			
+			if(angularError < -Math.PI){
+				angularError += Math.PI*2;
+			}
+			
+			if(Math.abs(angularError) > DEG_ERR){
+				turnTo(angleToHeading(x,y));
+			}
 			
 		}
 		stopMotors();
@@ -83,23 +97,24 @@ public class Navigation {
 	 * @param theta Absolute angle from the y-axis to turn to
 	 * @see Odometer
 	 */
-	
-	public void turnTo(double angle, boolean stop) {
+	/*
+	public void turnTo(double thetaD, boolean stop) {
 
-		double error = angle - this.odometer.getTheta();
+		double error = thetaD - this.odometer.getTheta();  //thetaD-thetaR
 
-		while (Math.abs(error) > DEG_ERR) {
+		while (Math.abs(error) > DEG_ERR ) {
 
-			error = angle - this.odometer.getTheta();
+			error = thetaD - this.odometer.getTheta();
 			Robonaldo.t.drawString(""+Math.toDegrees(error),0,5);
 			
-			if (error > Math.PI) {
+			
+			if (error >= Math.PI) {
 				this.setSpeeds(-SLOW, SLOW, true);
-			} else if (error > 0.0) {
+			} else if (error >= DEG_ERR) {
 				this.setSpeeds(SLOW, -SLOW, true);
-			} else if (error < -Math.PI) {
+			} else if (error <= -Math.PI) {
 				this.setSpeeds(SLOW, -SLOW, true);
-			} else {
+			} else if (error <= DEG_ERR){
 				this.setSpeeds(-SLOW, SLOW, true);
 			}
 		}
@@ -107,7 +122,15 @@ public class Navigation {
 		if (stop) {
 			stopMotors();
 		}
+	}*/
+	
+	public void turnTo(double theta){		
+		synchronized(lock){
+			leftMotor.rotate(-convertAngle(W_RADIUS, W_BASE, theta), true);	
+			rightMotor.rotate(convertAngle(W_RADIUS, W_BASE, theta), false);
+		}
 	}
+	
 	
 	/**
 	 * Convert absolute distance in cm into degrees the wheels are required based
@@ -120,6 +143,13 @@ public class Navigation {
 	 */
 	private int convertDistance(double radius, double distance) {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
+	}
+	
+	//go straight
+	public void goStraight(int lSpd, int rSpd, double distance){
+		setSpeeds(lSpd, rSpd, true);
+		leftMotor.rotate(-convertDistance(W_RADIUS, distance), true);
+		rightMotor.rotate(-convertDistance(W_RADIUS, distance), false);
 	}
 	
 
@@ -152,7 +182,7 @@ public class Navigation {
 	 * @param x X-position of coordinate to turn to
 	 * @param y Y-position of coordinate to turn to
 	 * @return Absolute angle to turn to relative to y-axis
-	 */ /*
+	 */ 
 	private double angleToHeading(double x, double y){
 		// absolute heading
 		double heading = Math.atan2(x-odometer.getX(), y-odometer.getY());
@@ -168,7 +198,18 @@ public class Navigation {
 			angleToHeading = angularError - 2*Math.PI;
 		}
 		return angleToHeading;
-	}*/
+	}
+	
+	private double angleToHeading2(double heading, double angularError){
+		if(angularError<= Math.PI && angularError >= -Math.PI){
+			heading = angularError;
+		}else if(angularError < -Math.PI){
+			heading = angularError + 2*Math.PI;
+		}else if(angularError > Math.PI){
+			heading = angularError - 2*Math.PI;
+		}
+		return heading;
+	}
 
 	/**
 	 * Set the speeds of each motor and give the option on whether to move directly after

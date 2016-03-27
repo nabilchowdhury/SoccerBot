@@ -16,6 +16,9 @@ public class USPoller extends Thread{
 	private SampleProvider usValue;
 	private float[] usData;
 	private double distance;
+	private double filteredDistance;
+	private int FILTER_OUT = 5;
+	private int filterControl;
 	
 	/**
 	 * Takes in a <code>EV3UltrasonicSensor</code> object to being sampling
@@ -38,6 +41,23 @@ public class USPoller extends Thread{
 		while(true){
 			usSensor.fetchSample(usData, 0);
 			this.distance = usData[0]*100;
+			
+			if(this.distance >= 60){
+				filteredDistance = 60;
+			}
+			//filter
+			if (this.distance >= 60 && filterControl < FILTER_OUT) {
+				// bad value, do not set the distance var, however do increment the filter value
+				filterControl++;
+			} else if (this.distance >= 60){
+				// true max distance
+				filteredDistance = 60;
+			} else {
+				// distance went below 255, therefore reset everything.
+				filterControl = 0;
+				filteredDistance = this.distance;
+			}
+			
 			// Sleeps for 50 ms
 			try{
 				Thread.sleep(50);
@@ -55,9 +75,6 @@ public class USPoller extends Thread{
 	 * @return Filtered distance in cm sampled from ultrasonic sensor
 	 */
 	public double getDistance(){
-		if(this.distance >= 255){
-			this.distance = 255;
-		}
-		return this.distance;
+		return this.filteredDistance;
 	}
 }
