@@ -26,7 +26,6 @@ public class Screen extends Thread{
 	 */
 	public void run() {
 		long displayStart, displayEnd;
-		double[] position = new double[3];
 		// clear the display once
 		t.clear();
 		while (true) {

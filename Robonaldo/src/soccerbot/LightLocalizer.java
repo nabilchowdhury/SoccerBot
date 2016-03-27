@@ -10,23 +10,29 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
-public class LightLocalizer {
+public class LightLocalizer extends Thread{
 	private Odometer odo;
 	private Navigation navigate;
-	private EV3LargeRegulatedMotor leftMotor;
-	private EV3LargeRegulatedMotor rightMotor;
 	
 	//color sensor middle
 	private Port csPort;
 	private SensorModes csSensor;
 	private SampleProvider csValue;
 	private float[] csData;
-	private float color;
+	
+	
+	/*
+	//color sensor offset
+	private Port csPortT;
+	private SensorModes csSensorT;
+	private SampleProvider csValueT;
+	private float[] csDataT;*/
 	
 	// Class constants
-	private final int FILTER_COLOR = 1;
-	
-	private int filterValue = 0;
+//	private final int FILTER_COLOR = 1;
+//	
+//	private int filterValue = 0;
+//	private int filterValueT = 0;
 	
 	//display variables, delete this
 	public static double x;
@@ -35,77 +41,82 @@ public class LightLocalizer {
 	public static double thetaX;
 	public static double thetaY;
 	
-	public LightLocalizer(Odometer odo, Navigation navigate, Port csPort, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor) {
+	//private Object lock;
+	
+	public LightLocalizer(Odometer odo, Navigation navigate, Port csPort1) {
 		this.odo = odo;
 		this.navigate = navigate;
-		this.csPort = csPort;
+		
+		this.csPort = csPort1;
 		this.csSensor = new EV3ColorSensor(csPort);
 		this.csValue = csSensor.getMode("Red");
 		csSensor.setCurrentMode("Red");
-		this.csData = new float[csValue.sampleSize()];
-		this.leftMotor = leftMotor;
-		this.rightMotor = rightMotor;
+		this.csData = new float[csValue.sampleSize()];		
+		
+		//this.lock = new Object();
 	}
 	
 	// Initiate light localization
-	public void localize() {
+	public void run() {
+		navigate.goStraight(350,350, -30);
+		navigate.setSpeeds(250, 250, true);
 		
-		// go straight 6 cm
-		navigate.goStraight(300, 300, 6);
-		
-		// Turn counterclockwise 90 deg
-		navigate.turnTo(-Math.PI/2);
-		
-		navigate.goStraight(300, 300, 10);
-	
-		navigate.turnTo(-2*Math.PI/3);
-		
-		// Initiate arc to catch all 4 grid lines
-		leftMotor.backward();
-		rightMotor.forward();
-		
-		int count = 0;
-		// Indices used to store angles -> 0 = x-, 1 = y+, 2 = x+, 3 = y-
-		// Array used to store angles at all 4 grid lines
-		double[] angleArray = new double[4];
-		
-		// While loop is used to store angles at all 4 gridlines in angleArray[]. 
 		while(true){
-			if(getColorData() < 27 && getColorData() > 10){
-				filterValue++;
-				if(filterValue >= FILTER_COLOR){
+			if(getColorData() < 30 && getColorData() > 7){
+				//filterValue++;
+				//if(filterValue >= FILTER_COLOR){
+					navigate.stopMotors();
 					Sound.beep();
-					angleArray[count] = odo.getTheta();			
-					count++;
-					filterValue = 0;
-				}
-			}
-			// Break out of loop once all 4 angles are found
-			if(count >= 4){
-				navigate.stopMotors();
-				break;
+					//filterValue = 0;
+					break;
+				//}
 			}
 		}
 		
-		// Calculating x, y and deltaT
+		navigate.goStraight(250, 250, 4);
+		navigate.turnTo(-Math.PI/2);
+		navigate.goStraight(250, 250, -8);
 		
+		navigate.setSpeeds(250, 250, true);
+		while(true){
+			if(getColorData() < 40 && getColorData() > 7){
+				//filterValue++;
+				//if(filterValue >= FILTER_COLOR){
+					navigate.stopMotors();
+					Sound.beep();
+					//filterValue = 0;
+					break;
+				//}
+			}
+		}
 		
-		// Distance away from gridline cross section
-		x = 11.45*Math.cos((angleArray[1] - angleArray[3])/2);
-		y = 11.45*Math.cos((angleArray[2] - angleArray[0])/2);
-		deltaT = Math.PI/2-(angleArray[3]-Math.PI)+(angleArray[1] - angleArray[3])/2;
+		navigate.goStraight(250, 250, 10.8);
 		
-		// Final sequence to position robot at cross sections at 0 heading
+		navigate.setSpeeds(250, -250, true);
+		int count = 0;
+		while(true){
+			if(count == 2){
+				navigate.stopMotors();
+				break;
+			}
+			if(getColorData() < 40 && getColorData() > 7){
+				count++;
+				Sound.beep();
+			}
+		}
+		navigate.setSpeeds(150, 150, false);
+		navigate.turnTo(Math.toRadians(-13.1));
 		
-		odo.setX(-y);odo.setY(-x);odo.setTheta(odo.getTheta()+deltaT);
+		navigate.goStraight(150, 150, 7);	
 		
-		navigate.travelTo(0,0); //navigate.turnTo(deltaT);
-		//navigate.setSpeeds(150,150,false);
-		//navigate.turnTo(-(Math.atan(y/x))+odo.getTheta());
+		odo.setTheta(0.0);
+		odo.setY(0.0);
+		odo.setX(0.0);
 		
 	}
 	
-	// Method that returns color data
+	
+	// Obtain color sensor readings
 	private float getColorData() {
 		csSensor.fetchSample(csData, 0);
 		float color = csData[0]*100;	
@@ -113,6 +124,4 @@ public class LightLocalizer {
 		return color;
 	}
 	
-
-
 }

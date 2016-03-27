@@ -40,7 +40,7 @@ public class Navigation {
 		this.odometer = odometer;
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
-		lock = new Object();
+		this.lock = new Object();
 	}
 	
 	/**
@@ -60,33 +60,35 @@ public class Navigation {
 	 *  @see Odometer
 	 */
 	public void travelTo(double x, double y) {
-		double thetaD;
-		//x = x*30.33;
-		//y = y*30.33;
-		while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
+		synchronized(lock){
+			double thetaD;
+			x = x*30.33;
+			y = y*30.33;
+			while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
 			
-			thetaD = (Math.atan2(x - odometer.getX(), y - odometer.getY()));
-			this.setSpeeds(SLOW, SLOW, true);
+				thetaD = (Math.atan2(x - odometer.getX(), y - odometer.getY()));
+				this.setSpeeds(SLOW, SLOW, true);
 			
-			//theta from 0 to 2PI
-			if (thetaD < 0){
-				thetaD += Math.PI*2;
+				//theta from 0 to 2PI
+				if (thetaD < 0){
+					thetaD += Math.PI*2;
+				}
+			
+				double angularError = thetaD - this.odometer.getTheta();
+			
+				if(angularError > Math.PI){
+					angularError -= Math.PI*2;
+				}
+			
+				if(angularError < -Math.PI){
+					angularError += Math.PI*2;
+				}
+				
+				if(Math.abs(angularError) > DEG_ERR){
+					turnTo(angleToHeading(x,y));
+				}
+				
 			}
-			
-			double angularError = thetaD - this.odometer.getTheta();
-			
-			if(angularError > Math.PI){
-				angularError -= Math.PI*2;
-			}
-			
-			if(angularError < -Math.PI){
-				angularError += Math.PI*2;
-			}
-			
-			if(Math.abs(angularError) > DEG_ERR){
-				turnTo(angleToHeading(x,y));
-			}
-			
 		}
 		stopMotors();
 	}
@@ -97,38 +99,9 @@ public class Navigation {
 	 * @param theta Absolute angle from the y-axis to turn to
 	 * @see Odometer
 	 */
-	/*
-	public void turnTo(double thetaD, boolean stop) {
-
-		double error = thetaD - this.odometer.getTheta();  //thetaD-thetaR
-
-		while (Math.abs(error) > DEG_ERR ) {
-
-			error = thetaD - this.odometer.getTheta();
-			Robonaldo.t.drawString(""+Math.toDegrees(error),0,5);
-			
-			
-			if (error >= Math.PI) {
-				this.setSpeeds(-SLOW, SLOW, true);
-			} else if (error >= DEG_ERR) {
-				this.setSpeeds(SLOW, -SLOW, true);
-			} else if (error <= -Math.PI) {
-				this.setSpeeds(SLOW, -SLOW, true);
-			} else if (error <= DEG_ERR){
-				this.setSpeeds(-SLOW, SLOW, true);
-			}
-		}
-
-		if (stop) {
-			stopMotors();
-		}
-	}*/
-	
 	public void turnTo(double theta){		
-		synchronized(lock){
-			leftMotor.rotate(-convertAngle(W_RADIUS, W_BASE, theta), true);	
-			rightMotor.rotate(convertAngle(W_RADIUS, W_BASE, theta), false);
-		}
+		leftMotor.rotate(-convertAngle(W_RADIUS, W_BASE, theta), true);	
+		rightMotor.rotate(convertAngle(W_RADIUS, W_BASE, theta), false);
 	}
 	
 	
@@ -171,7 +144,6 @@ public class Navigation {
 	}
 	
 	
-	//Rotate robot
 	
 	
 	/**
@@ -200,17 +172,6 @@ public class Navigation {
 		return angleToHeading;
 	}
 	
-	private double angleToHeading2(double heading, double angularError){
-		if(angularError<= Math.PI && angularError >= -Math.PI){
-			heading = angularError;
-		}else if(angularError < -Math.PI){
-			heading = angularError + 2*Math.PI;
-		}else if(angularError > Math.PI){
-			heading = angularError - 2*Math.PI;
-		}
-		return heading;
-	}
-
 	/**
 	 * Set the speeds of each motor and give the option on whether to move directly after
 	 * setting.

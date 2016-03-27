@@ -24,9 +24,7 @@ public class USLocalizer {
 	private Navigation navigate;
 	private USPoller usPollerL;
 	private USPoller usPollerR;
-	private EV3LargeRegulatedMotor leftMotor;
-	private EV3LargeRegulatedMotor rightMotor;
-		
+			
 	/**
 	 * This constructor needs the odometer to be able to update its heading and a USPoller
 	 * to receive its polled data to determine the rising edges. Motors are necessary so that we may rotate 
@@ -37,13 +35,11 @@ public class USLocalizer {
 	 * @param leftMotor This robot's left motor
 	 * @param rightMotor This robot's right motor
 	 */
-	USLocalizer(Odometer odometer,Navigation navigate, USPoller pollerL, USPoller pollerR, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor){
+	USLocalizer(Odometer odometer,Navigation navigate, USPoller pollerL, USPoller pollerR){
 		this.odo = odometer;
 		this.navigate = navigate;
 		this.usPollerL = pollerL;
 		this.usPollerR = pollerR;
-		this.leftMotor = leftMotor;
-		this.rightMotor = rightMotor;
 	}
 	
 	/**
@@ -95,11 +91,13 @@ public class USLocalizer {
 		// INITIATE CLOCKWISE SEQUENCE
 		navigate.setSpeeds(ROTATION_SPD, -ROTATION_SPD, true);
 		// Empty loop used to filter out if robot begins facing wall (this is a precautionary step)
+		try{
+			Thread.sleep(1000);
+		}catch(Exception e){}
 		while(usPollerR.getDistance() > D_LOW){
 			//empty loop	
 		}
 		while(true){
-
 			// Set high and low angles
 			if(usPollerR.getDistance() >= D_LOW && angleHigh == null){
 				angleHigh = odo.getTheta();
@@ -129,19 +127,10 @@ public class USLocalizer {
 		}else {
 			deltaT = Math.toRadians(218.5) - (angleA+angleB)/2;
 		}
-		
-		double correctionAngle = odo.getTheta() + deltaT;
-		
-		
+				
 		// Update odometer angle
-		
 		navigate.setSpeeds(ROTATION_SPD, ROTATION_SPD, false);
-		navigate.turnTo(correctionAngle+Math.PI/2);
-		
-		odo.setTheta(90);
-		
+		navigate.turnTo(odo.getTheta()+deltaT+Math.PI/2);		
 	}
-	
-	
-	
+
 }
