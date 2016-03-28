@@ -35,7 +35,7 @@ public class USLocalizer {
 	 * @param leftMotor This robot's left motor
 	 * @param rightMotor This robot's right motor
 	 */
-	public USLocalizer(Odometer odometer,Navigation navigate, USPoller pollerL, USPoller pollerR){
+	USLocalizer(Odometer odometer,Navigation navigate, USPoller pollerL, USPoller pollerR){
 		this.odo = odometer;
 		this.navigate = navigate;
 		this.usPollerL = pollerL;

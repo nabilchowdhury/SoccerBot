@@ -12,4 +12,5 @@
 <fullyQualifiedTypeName name="lejos.hardware.sensor.SensorModes"/>
 <fullyQualifiedTypeName name="lejos.hardware.port.Port"/>
 <fullyQualifiedTypeName name="lejos.hardware.ev3.LocalEV3"/>
+<fullyQualifiedTypeName name="lejos.hardware.sensor.EV3ColorSensor"/>
 </qualifiedTypeNameHistroy>
