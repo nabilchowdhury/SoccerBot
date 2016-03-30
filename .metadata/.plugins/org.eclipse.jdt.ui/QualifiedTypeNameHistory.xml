@@ -10,7 +10,8 @@
 <fullyQualifiedTypeName name="lejos.hardware.port.SensorPort"/>
 <fullyQualifiedTypeName name="javax.sound.sampled.Port"/>
 <fullyQualifiedTypeName name="lejos.hardware.sensor.SensorModes"/>
-<fullyQualifiedTypeName name="lejos.hardware.port.Port"/>
 <fullyQualifiedTypeName name="lejos.hardware.ev3.LocalEV3"/>
 <fullyQualifiedTypeName name="lejos.hardware.sensor.EV3ColorSensor"/>
+<fullyQualifiedTypeName name="java.lang.Math"/>
+<fullyQualifiedTypeName name="lejos.hardware.port.Port"/>
 </qualifiedTypeNameHistroy>

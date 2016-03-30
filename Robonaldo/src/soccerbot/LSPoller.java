@@ -1,5 +1,8 @@
 package soccerbot;
 
+import lejos.hardware.port.Port;
+import lejos.hardware.sensor.EV3ColorSensor;
+import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
 /**
@@ -11,22 +14,30 @@ import lejos.robotics.SampleProvider;
  */
 public class LSPoller extends Thread {
 
-	private SampleProvider colorSensor;
+	//color sensor middle
+	private Port csPort;
+	private SensorModes csSensor;
+	private SampleProvider csValue;
 	private float[] colorData;
+	
 	private double lastResult;
 	private double result;
 	private double difference;
 	
+	
+	
 	/**
-	 * Constructor takes in a <code>SampleProvider</code> object and a flaot array for the sampled data.
+	 * Constructor takes in a <code>SampleProvider</code> object and a float array for the sampled data.
 	 * 
-	 * @param colorSensor The <code>SampleProvider</code> that will allow this to fetch samples
+	 * @param csValue The <code>SampleProvider</code> that will allow this to fetch samples
 	 * @param colorData Float array to store the sample data
 	 */
-	public LSPoller(SampleProvider colorSensor, float[] colorData) {
-		this.colorSensor = colorSensor;
-		this.colorData = colorData;
-		
+	public LSPoller(Port csPort) {
+		this.csPort = csPort;
+		this.csSensor = new EV3ColorSensor(csPort);
+		this.csValue = csSensor.getMode("Red");
+		csSensor.setCurrentMode("Red");
+		this.colorData = new float[csValue.sampleSize()];
 	}
 	
 	/**
@@ -36,14 +47,14 @@ public class LSPoller extends Thread {
 	public void run() {
 		while(true) {
 			lastResult = this.result;
-			this.colorSensor.fetchSample(this.colorData, 0);
+			this.csValue.fetchSample(this.colorData, 0);
 			this.result = this.colorData[0];
 			this.difference = this.result - this.lastResult;
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				// Nothing
-			}
+			}	
 		}
 	}
 	
@@ -53,7 +64,7 @@ public class LSPoller extends Thread {
 	 * @return
 	 */
 	public synchronized double getDifferentialData() { 
-		return this.difference; 
+		return this.difference;
 	}
 	
 	

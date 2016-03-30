@@ -10,29 +10,13 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
-public class LightLocalizer extends Thread{
+public class LightLocalizer{
 	private Odometer odo;
 	private Navigation navigate;
 	
 	//color sensor middle
-	private Port csPort;
-	private SensorModes csSensor;
-	private SampleProvider csValue;
-	private float[] csData;
-	
-	
-	/*
-	//color sensor offset
-	private Port csPortT;
-	private SensorModes csSensorT;
-	private SampleProvider csValueT;
-	private float[] csDataT;*/
-	
-	// Class constants
-//	private final int FILTER_COLOR = 1;
-//	
-//	private int filterValue = 0;
-//	private int filterValueT = 0;
+	private LSPoller lsPoller;
+	//private LSPoller rightPoller;
 	
 	//display variables, delete this
 	public static double x;
@@ -41,87 +25,107 @@ public class LightLocalizer extends Thread{
 	public static double thetaX;
 	public static double thetaY;
 	
-	//private Object lock;
+	private Object lock = new Object();
 	
-	public LightLocalizer(Odometer odo, Navigation navigate, Port csPort1) {
+	public LightLocalizer(Odometer odo, Navigation navigate, LSPoller lsPoller) {
 		this.odo = odo;
 		this.navigate = navigate;
+		this.lsPoller = lsPoller;
+		//this.rightPoller = rightPoller;
 		
-		this.csPort = csPort1;
-		this.csSensor = new EV3ColorSensor(csPort);
-		this.csValue = csSensor.getMode("Red");
-		csSensor.setCurrentMode("Red");
-		this.csData = new float[csValue.sampleSize()];		
-		
-		//this.lock = new Object();
+		this.lock = new Object();
 	}
 	
 	// Initiate light localization
-	public void run() {
-		navigate.goStraight(350,350, -30);
-		navigate.setSpeeds(250, 250, true);
+	public void localize() {
+		navigate.goStraight(280,280, -23);
+		
+		preventTwitch();
+		
+		navigate.setSpeeds(250, 250, true, 2000);
 		
 		while(true){
-			if(getColorData() < 30 && getColorData() > 7){
-				//filterValue++;
-				//if(filterValue >= FILTER_COLOR){
-					navigate.stopMotors();
-					Sound.beep();
-					//filterValue = 0;
-					break;
-				//}
+			if(lsPoller.getDifferentialData() > 0.06){
+				navigate.stopMotors();
+				Sound.beep();
+				break;
 			}
 		}
 		
-		navigate.goStraight(250, 250, 4);
-		navigate.turnTo(-Math.PI/2);
-		navigate.goStraight(250, 250, -8);
+		preventTwitch();
 		
-		navigate.setSpeeds(250, 250, true);
+		navigate.goStraight(250, 250, 3.3);
+		
+		preventTwitch();
+		
+		navigate.setSpeeds(250, 250, false, 2000);
+		navigate.turnTo(Math.PI/2);
+		
+		preventTwitch();
+		
+		navigate.goStraight(280, 280, -8);
+		
+		preventTwitch();
+		
+		navigate.setSpeeds(250, 250, true, 2000);
+		
 		while(true){
-			if(getColorData() < 40 && getColorData() > 7){
-				//filterValue++;
-				//if(filterValue >= FILTER_COLOR){
-					navigate.stopMotors();
-					Sound.beep();
-					//filterValue = 0;
-					break;
-				//}
+			if(lsPoller.getDifferentialData() > 0.06){
+				navigate.stopMotors();
+				Sound.beep();
+				break;
 			}
 		}
 		
-		navigate.goStraight(250, 250, 10.8);
+		preventTwitch();
 		
-		navigate.setSpeeds(250, -250, true);
+		navigate.goStraight(250, 250, 9.15);
+		
+		preventTwitch();
+		
+		navigate.setSpeeds(-180, 180, true, 6000);
+		
 		int count = 0;
+		
 		while(true){
 			if(count == 2){
 				navigate.stopMotors();
 				break;
 			}
-			if(getColorData() < 40 && getColorData() > 7){
+			if(lsPoller.getDifferentialData() > 0.06){
 				count++;
 				Sound.beep();
 			}
 		}
-		navigate.setSpeeds(150, 150, false);
-		navigate.turnTo(Math.toRadians(-13.1));
 		
-		navigate.goStraight(150, 150, 7);	
 		
-		odo.setTheta(0.0);
-		odo.setY(0.0);
-		odo.setX(0.0);
+		navigate.setSpeeds(150, 150, false, 6000);
+		
+		navigate.turnTo(Math.toRadians(13));
+		
+		preventTwitch();
+		
+		navigate.goStraight(150, 150, 5.9);	
+		
+		preventTwitch();
+				
+		//synchronized(lock){
+			/*
+			double position[] = {6*30.33, 0.0, 1.5*Math.PI};
+			boolean update[] = {true, true, true};
+			odo.setPosition(position, update);*/
+			odo.setX(0.0); odo.setY(0.0); odo.setTheta(90.0);
+			Sound.beep();
+		//}
 		
 	}
 	
-	
-	// Obtain color sensor readings
-	private float getColorData() {
-		csSensor.fetchSample(csData, 0);
-		float color = csData[0]*100;	
-		
-		return color;
+	public void preventTwitch(){
+		navigate.stopMotors();
+		try{
+			Thread.sleep(50);
+		}catch(Exception e){}
 	}
+	
 	
 }

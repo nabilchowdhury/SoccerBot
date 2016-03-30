@@ -16,9 +16,8 @@ public class USLocalizer {
 	
 	// Constants
 	private static final int ROTATION_SPD = 250;
-	private static final int D_HIGH = 45;
-	private static final int D_LOW = 43;
-	private static final int ACC = 6000;
+	private static final int D_HIGH = 35;
+	private static final int D_LOW = 33;
 	
 	private Odometer odo;
 	private Navigation navigate;
@@ -58,9 +57,9 @@ public class USLocalizer {
 				
 		
 		//INITIATE COUNTERCLOCKWISE SEQUENCE
-		navigate.setSpeeds(-ROTATION_SPD, ROTATION_SPD, true);
+		navigate.setSpeeds(-ROTATION_SPD, ROTATION_SPD, true, 6000);
 		// If robot starts facing away from a wall, continue to turn until it is facing a wall
-		while(usPollerL.getDistance() > D_LOW){
+		while(usPollerL.getDistance() > D_LOW-2){
 			//empty loop
 		}
 		// Robot is now facing the wall. Use left USSensor for to detect first rising edge
@@ -88,8 +87,9 @@ public class USLocalizer {
 		}
 		
 		
+		
 		// INITIATE CLOCKWISE SEQUENCE
-		navigate.setSpeeds(ROTATION_SPD, -ROTATION_SPD, true);
+		navigate.setSpeeds(ROTATION_SPD, -ROTATION_SPD, true, 6000);
 		// Empty loop used to filter out if robot begins facing wall (this is a precautionary step)
 		try{
 			Thread.sleep(1000);
@@ -123,14 +123,13 @@ public class USLocalizer {
 		
 		// Correct robot to approximately 0 deg heading
 		if(angleA < angleB){
-			deltaT = Math.toRadians(35.125) - (angleA+angleB)/2;
+			deltaT = Math.toRadians(30) - (angleA+angleB)/2; // 35.125
 		}else {
-			deltaT = Math.toRadians(218.5) - (angleA+angleB)/2;
+			deltaT = Math.toRadians(218) - (angleA+angleB)/2; //218.5
 		}
-				
+		navigate.setSpeeds(ROTATION_SPD, ROTATION_SPD, false, 6000);
 		// Update odometer angle
-		navigate.setSpeeds(ROTATION_SPD, ROTATION_SPD, false);
-		navigate.turnTo(odo.getTheta()+deltaT+Math.PI/2);		
+		navigate.turnTo(odo.getTheta()+deltaT);	
 	}
 
 }

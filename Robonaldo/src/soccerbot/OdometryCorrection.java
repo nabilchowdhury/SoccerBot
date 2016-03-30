@@ -1,6 +1,7 @@
 package soccerbot;
 
 import lejos.hardware.Sound;
+import lejos.hardware.port.Port;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
@@ -18,9 +19,7 @@ public class OdometryCorrection extends Thread {
 	private Odometer odometer;
 		
 	// Color sensor is used to detect known landmarks (in this case black lines)
-	private EV3ColorSensor colorSensor;
-	private SampleProvider cs;
-	private float[] csData;
+	private LSPoller poller;
 
 	/**
 	 * The contructor requires the Odometer thread object being used and initializes the color sensor.
@@ -28,14 +27,10 @@ public class OdometryCorrection extends Thread {
 	 *  @param odometer The odometer thread object to be passed
 	 *  @see Odometer
 	 */
-	public OdometryCorrection(Odometer odometer) {
+	public OdometryCorrection(Odometer odometer, LSPoller poller) {
 		this.odometer = odometer;
+		this.poller = poller;
 		
-		// Initiate color sensor detection system
-		this.colorSensor = new EV3ColorSensor(SensorPort.S3);
-		this.cs = colorSensor.getRedMode();
-		int sampleSize = colorSensor.sampleSize();
-		csData = new float[sampleSize];
 	}
 
 	/**
@@ -45,62 +40,55 @@ public class OdometryCorrection extends Thread {
 		long correctionStart, correctionEnd;
 		
 		// Perpendicular distance from center of tile to black line
-		double length = 15.24;	//in cm
-		try{
-			Thread.sleep(3000);
-		}catch(Exception e){}
+		double length = 30.33;	//in cm
 		while (true) {
 			
 			correctionStart = System.currentTimeMillis();
 			
 			if(Robonaldo.leftMotor.getRotationSpeed() == Robonaldo.rightMotor.getRotationSpeed()){
 			
-			// Obtain color sensor data
-			cs.fetchSample(csData, 0);
-			int csValue = (int)(csData[0]*100);
-			
 			//	Odometry correction algorithm based on orientation on the plane
-			if(csValue < 37 && csValue > 5){	// Detection of black line in beteween these values
+			if(poller.getDifferentialData() < 0.075){	// Detection of black line in beteween these values
 				double xPos, yPos, theta;	// Used to store current position values
 				int multiplier;		// Used to store multiplier calculated from current odometer reading
 				xPos = odometer.getX();
 				yPos = odometer.getY();
 				theta = odometer.getTheta();
-				double thetaConvert = theta*57.2958; // Converts radians to degrees for simpler algorithm
+				double thetaConvert = Math.toDegrees(theta); // Converts radians to degrees for simpler algorithm
 				
 				// If-else if statements used to section plane based on angle
 				if(thetaConvert <= 5){	// Left edge
 					Sound.beep();
-					multiplier = (int)(Math.round(yPos/15));
+					multiplier = (int)(Math.round(yPos/30));
 					odometer.setY(multiplier*length);
 					odometer.setTheta(0.0);
 				}else if(thetaConvert >= 85 && thetaConvert <= 95){	// Top edge
 					Sound.buzz();
-					multiplier = (int)(Math.round(xPos/15));
+					multiplier = (int)(Math.round(xPos/30));
 					odometer.setX(multiplier*length);
-					odometer.setTheta(90.0/57.2958);
+					odometer.setTheta(Math.PI/2);
 				
 				}else if(thetaConvert >= 175 && thetaConvert <= 185){ // Right edge
 					Sound.beep();
-					multiplier = (int)(Math.round(yPos/15));
-					odometer.setY(multiplier*length - 1.5);
-					odometer.setTheta(180.0/57.2958);
+					multiplier = (int)(Math.round(yPos/30));
+					odometer.setY(multiplier*length);
+					odometer.setTheta(Math.PI);
 				}else if(thetaConvert >= 265 && thetaConvert <= 275){ // Bottom edge
 					Sound.buzz();
-					multiplier = (int)(Math.round(xPos/15));
-					odometer.setX(multiplier*length - 3);
-					odometer.setTheta(270.0/57.2958);
+					multiplier = (int)(Math.round(xPos/30));
+					odometer.setX(multiplier*length);
+					odometer.setTheta(1.5*Math.PI);
 					
 				}else if(thetaConvert >= 355 && thetaConvert <= 360){	//Left edge, approaching initial orientation
 					Sound.beep();
-					multiplier = (int)(5*(Math.round(yPos/15)));
+					multiplier = (int)(5*(Math.round(yPos/30)));
 					odometer.setY(multiplier*length);
-					multiplier = (int)(5*(Math.round(xPos/15)));
+					multiplier = (int)(5*(Math.round(xPos/30)));
 					odometer.setX(multiplier*length);
 				}
 				
 				try{
-					Thread.sleep(2000);
+					Thread.sleep(500);
 				}catch(Exception e){}
 				
 			}
