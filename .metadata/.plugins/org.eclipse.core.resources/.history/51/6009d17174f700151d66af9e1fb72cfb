@@ -47,7 +47,7 @@ public class USLocalizer {
 	 * true north and update the odometer to reflect this.
 	 */
 	public void localize(){
-		Robonaldo.loadMotor.stop();  // stop loadMotor from moving while localizing
+		Robonaldo.loadMotor.stop();  // stop laodMotor from moving while localizing
 		
 		double deltaT = 0;
 		double angleA; double angleB;

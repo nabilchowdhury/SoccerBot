@@ -99,63 +99,63 @@ public class Navigation {
 			
 				this.setSpeeds(SLOW, SLOW, true, SMOOTH);
 				
-				
+				/*
 				///////////////////////
 				// OBSTACLE AVOIDANCE//
 				///////////////////////
 				if(avoid){
-					// Turn 90 degrees when obstacle is detected in front of robot
-					if((leftPoller.getDistance() <= BAND) || (rightPoller.getDistance() <= BAND)){
-						goStraight(100, 100, -6);
-						if(odometer.getX() > odometer.getY()){
-							turnTo(-Math.PI/4);
-						}else {
-							turnTo(Math.PI/4);
-						}
-						
-						
+				// Turn 90 degrees when obstacle is detected in front of robot
+				if((leftPoller.getDistance() <= BAND) || (rightPoller.getDistance() <= BAND)){
+					goStraight(100, 100, -6);
+					if(odometer.getX() > odometer.getY()){
+						turnTo(-Math.PI/4);
+					}else {
+						turnTo(Math.PI/4);
+					}
 					
-						// Calculates absolute slope used to get back on trajectory after avoiding obstacle
-						double slope = (x - odometer.getX())/(y - odometer.getY());
-						double changingSlope;
-						double slopeError = 0.06;
-						boolean ignore = true;	// Used to ignore first slope value as soon as turn starts. We only want the slope after the turn.
-						double odoX = odometer.getX(); double odoY = odometer.getY();
-						while(true){
-							// Calculates slope as robot is turning to avoid obstacle. Once changingSlope == absolute slope, we are on trajectory
-							changingSlope = (x - odometer.getX())/(y - odometer.getY());
-							
-							if(odoX > odoY){
-								avoid(rightPoller.getDistance(), odoX, odoY);
-							}else {
-								avoid(leftPoller.getDistance(), odoX, odoY);
-							}
-	
-							// First if statement used to ignore first slope value
-							if((changingSlope < slope+slopeError) && (changingSlope > slope-slopeError) && ignore == true){
-								ignore = false;
-								// Sleeps for 500 ms to avoid first slope calculation. We only want the slope after the turn not before
-								try{
-									Thread.sleep(500);
-								}catch(Exception e){
-									
-								}
+					
+				
+					// Calculates absolute slope used to get back on trajectory after avoiding obstacle
+					double slope = (x - odometer.getX())/(y - odometer.getY());
+					double changingSlope;
+					double slopeError = 0.06;
+					boolean ignore = true;	// Used to ignore first slope value as soon as turn starts. We only want the slope after the turn.
+					double odoX = odometer.getX(); double odoY = odometer.getY();
+					while(true){
+						// Calculates slope as robot is turning to avoid obstacle. Once changingSlope == absolute slope, we are on trajectory
+						changingSlope = (x - odometer.getX())/(y - odometer.getY());
+						
+						if(odoX > odoY){
+							avoid(rightPoller.getDistance(), odoX, odoY);
+						}else {
+							avoid(leftPoller.getDistance(), odoX, odoY);
+						}
+
+						// First if statement used to ignore first slope value
+						if((changingSlope < slope+slopeError) && (changingSlope > slope-slopeError) && ignore == true){
+							ignore = false;
+							// Sleeps for 500 ms to avoid first slope calculation. We only want the slope after the turn not before
+							try{
+								Thread.sleep(500);
+							}catch(Exception e){
 								
-							// Once back on trajectory, stop motors and break out of while loop
-							}else if((changingSlope < slope+slopeError) && (changingSlope > slope-slopeError) && ignore == false){
-								stopMotors();
-								break;
 							}
 							
-							if(Math.abs(x-odometer.getX()) <= 7 || Math.abs(y-odometer.getY()) <= 7){
-								return;
-							}
-							
+						// Once back on trajectory, stop motors and break out of while loop
+						}else if((changingSlope < slope+slopeError) && (changingSlope > slope-slopeError) && ignore == false){
+							stopMotors();
+							break;
 						}
 						
+						if(Math.abs(x-odometer.getX()) <= 7 || Math.abs(y-odometer.getY()) <= 7){
+							return;
+						}
 						
 					}
+					
+					
 				}
+				}*/
 				
 			}
 		}
@@ -245,7 +245,6 @@ public class Navigation {
 		}
 		return angleToHeading;
 	}
-	
 	
 	public void turnTo(double x, double y){
 		turnTo(angleToHeading(x, y));

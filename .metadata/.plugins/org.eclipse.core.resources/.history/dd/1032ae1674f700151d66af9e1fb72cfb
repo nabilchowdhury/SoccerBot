@@ -14,7 +14,9 @@ public class LightLocalizer{
 	private Odometer odo;
 	private Navigation navigate;
 	
+	//color sensor middle
 	private LSPoller lsPoller;
+	//private LSPoller rightPoller;
 	
 	//display variables, delete this
 	public static double x;
@@ -23,12 +25,15 @@ public class LightLocalizer{
 	public static double thetaX;
 	public static double thetaY;
 	
+	private Object lock = new Object();
 	
 	public LightLocalizer(Odometer odo, Navigation navigate, LSPoller lsPoller) {
 		this.odo = odo;
 		this.navigate = navigate;
 		this.lsPoller = lsPoller;
+		//this.rightPoller = rightPoller;
 		
+		this.lock = new Object();
 	}
 	
 	// Initiate light localization
@@ -104,8 +109,14 @@ public class LightLocalizer{
 		
 		preventTwitch();
 				
-		odo.setX(0.0); odo.setY(0.0); odo.setTheta(90.0);
-		Sound.beep();
+		//synchronized(lock){
+			/*
+			double position[] = {6*30.33, 0.0, 1.5*Math.PI};
+			boolean update[] = {true, true, true};
+			odo.setPosition(position, update);*/
+			odo.setX(0.0); odo.setY(0.0); odo.setTheta(90.0);
+			Sound.beep();
+		//}
 		
 	}
 	
