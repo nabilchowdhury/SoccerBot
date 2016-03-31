@@ -76,8 +76,6 @@ public class Robonaldo {
 		navigate.turnTo(Math.PI/2);
 		navigate.goStraight(150, 150, -30.45*0.65);
 		
-		
-		
 		navigate.stopMotors();
 		try{
 			Thread.sleep(50);
@@ -102,29 +100,49 @@ public class Robonaldo {
 		try{
 			Thread.sleep(1500);
 		}catch(Exception e){}
-		
-		
+			
 		launchMotor.setAcceleration(6000); launchMotor.setSpeed(600);
 		launchMotor.rotate(-140, false); launchMotor.flt();
-		
-		
-		
-		
-		
-		
+	
 		//System.exit(0);
 		
 	}
 	
-	
+	/**
+	 * Convert absolute angle on place to degrees each wheel is required to turn based
+	 * on the radius of the wheel to be rotated and the width of the robot.
+	 * Through the angle and the width we can calculate the distance required to move using
+	 * (width * angle) / 2.0
+	 * 
+	 * @param radius Radius of wheel being rotated in cm
+	 * @param width Wheel-to-wheel distance measured in cm from the center of each wheel
+	 * @param angle Absolute angle to be rotated in radians
+	 * @return Degrees wheel is required to rotate
+	 * @see convertDistance(dobule radius, double distance)
+	 * 
+	 */ 
 	private static int convertAngle(double radius, double width, double angle) {
 		return convertDistance(radius, width * angle / 2);
 	}
 	
+	/**
+	 * Convert absolute distance in cm into degrees the wheels are required based
+	 * on the radius of the wheel to be rotated.
+	 * Equation used is (180.0 * distance) / (pi * radius)
+	 * 
+	 * @param radius Radius of wheel being rotated in cm
+	 * @param distance Absolute distance in cm
+	 * @return Degrees wheel is required to rotate
+	 */
 	private static int convertDistance(double radius, double distance) {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
 	
+	/**
+	 * Retrieves each motor object. Assumes only 2 motor objects on each side of the robot are connected. 
+	 * 
+	 * @return Array of size 2 representing each motor object starting with the left one.
+	 */
 	public static EV3LargeRegulatedMotor[] getMotors(){
 		EV3LargeRegulatedMotor[] m = {leftMotor, rightMotor};
 		return m;

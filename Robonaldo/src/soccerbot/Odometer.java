@@ -9,7 +9,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
  * <p>
  * 	0Deg:pos y-axis -> 90Deg:pos x-axis -> 180Deg:neg y-axis -> 270Deg:neg x-axis
  * 
- * The odometer is initalized to 0 degrees, assuming the robot is facing up the positive y-axis
+ * The odometer is initialized to 0 degrees, assuming the robot is facing up the positive y-axis
  */
 public class Odometer extends Thread {
 	// class constants: robot dimensions
@@ -201,7 +201,19 @@ public class Odometer extends Thread {
 		}
 	}
 	
-	// Mutators
+	/**
+	 * Update the position reported by the odometer given an array of values. This array must have a size of 3 where the value
+	 * at the first index represents the x-position to be set, the second index represents the y-position to be set, and the third
+	 * and last index represents the heading to be set.
+	 * <p>
+	 * Another array of booleans is used to determine which value requires updating in the case that only certain values need to be update with the rest
+	 * left untouched. Again, this array must be of size 3 where each index represents whether the x-position, y-position, heading requires updating, respectively.
+	 * <p>
+	 * Values of both x-y positions and heading must be in cm and radians, respectively.
+	 * 
+	 * @param position Array of values for x, y, angle in cm and radians
+	 * @param update Array of booleans on whether the x or y positions or angle require updating
+	 */
 	public void setPosition(double[] position, boolean[] update) {
 		// Ensure that the values don't change while the odometer is running
 		synchronized (lock) {

@@ -8,7 +8,8 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
  * using the ultrasonic sensor at startup.
  * 
  * The robot's center of rotation must initially intersect with the corner-to-corner diagonal of the field.
- * This clsss will use the 'rising edges' during wall detection and the diagonal to determine the true 0 degrees.
+ * This class will use the 'rising edges' during wall detection and the diagonal to determine its true orientation relative to the field.
+ * We call this rising edge localization. We call a rising edge the moment a robot detects a wall, rotates, and then detects no wall.
  * 
  * @see Odometer
  */
@@ -25,16 +26,19 @@ public class USLocalizer {
 	private USPoller usPollerR;
 			
 	/**
-	 * This constructor needs the odometer to be able to update its heading and a USPoller
-	 * to receive its polled data to determine the rising edges. Motors are necessary so that we may rotate 
-	 * the robot in place.
+	 * This constructor assumes two ultrasonic sensors are connected. The <code>Odometer</code> object is required to be able to update its heading and two <code>USPoller</code>
+	 * objects to receive polled data from each sensor to determine the rising edges. <code>Navigation</code> object is necessary since we require this robot to 
+	 * use its motors for in-place rotation during the localization process.
+	 * <p>
+	 * NOTE: Only a single instance of both <code>Odometer</code> and <code>Navigation</code> should exist. These instances are to be passed around and any
+	 * other instances passed will cause disastrous results. 
 	 * 
-	 * @param odometer The odometer object that will be used
-	 * @param poller Polls the Ultrasonic sensor and retrieves data from it
-	 * @param leftMotor This robot's left motor
-	 * @param rightMotor This robot's right motor
+	 * @param odometer The <code>Odometer</code> object to be passed
+	 * @param navigate The <code>Navigation</code> object to be passed
+	 * @param pollerL Polls the left ultrasonic sensor and retrieves data from it
+	 * @param pollerR Polls the right ultrasonic sensor and retrieves data from it
 	 */
-	public USLocalizer(Odometer odometer,Navigation navigate, USPoller pollerL, USPoller pollerR){
+	public USLocalizer(Odometer odometer, Navigation navigate, USPoller pollerL, USPoller pollerR){
 		this.odo = odometer;
 		this.navigate = navigate;
 		this.usPollerL = pollerL;
@@ -44,7 +48,7 @@ public class USLocalizer {
 	/**
 	 * This method performs the rising edge localization. It will allow the robot to rotate and detect walls until 
 	 * the moment it doesn't. We call this the rising edge. When taking note of the rising edges, we are able to determine
-	 * true north and update the odometer to reflect this.
+	 * true orientation relative to the field and update the odometer to reflect this.
 	 */
 	public void localize(){
 		Robonaldo.loadMotor.stop();  // stop loadMotor from moving while localizing

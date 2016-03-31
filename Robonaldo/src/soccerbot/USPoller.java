@@ -21,9 +21,11 @@ public class USPoller extends Thread{
 	private int filterControl;
 	
 	/**
-	 * Takes in a <code>EV3UltrasonicSensor</code> object to being sampling
+	 * Takes in a <code>Port</code> object representing the port which the ultrasonic sensor to be sampled
+	 * is connected to.
 	 * 
-	 * @param myUSSensor The Ultrasonic sensor being sampled
+	 * @param usPort The <code>Port</code> object the ultrasonic sensor is connected to
+	 * 
 	 */
 	public USPoller(Port usPort){
 		this.usPort = usPort;
@@ -33,7 +35,9 @@ public class USPoller extends Thread{
 	}
 	
 	/**
-	 * Continuously get the sampled data from the ultrasonic sensor and sleep for 50 ms
+	 * Continuously get the sampled data from the ultrasonic sensor and sleep for 50 ms.
+	 * Thsi sampled data represents the distance reported and is filtered and bounded for any
+	 * erroneous values. The bound is set at 60 cm. 
 	 * 
 	 * @see java.lang.Thread#run()
 	 */
@@ -69,8 +73,7 @@ public class USPoller extends Thread{
 	
 	
 	/** 
-	 * Get the distance in cm sampled from the ultrasonic sensor and filter 
-	 * for any erroneous values over 255 cm
+	 * Get the distance in cm sampled and filtered from the ultrasonic sensor
 	 * 
 	 * @return Filtered distance in cm sampled from ultrasonic sensor
 	 */

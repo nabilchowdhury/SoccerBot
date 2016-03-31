@@ -10,6 +10,16 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
+/**
+ * <code>LightLocalizer</code> is in charge of using the color sensor to perform localization. This is performed
+ * after the localization of this robot using the ultrasonic sensor.
+ * <p>
+ * TODO: Describe and detail light localization process.
+ * 
+ * @author Omar Akkila
+ * @author Nabil Chowdhury
+ *
+ */
 public class LightLocalizer{
 	private Odometer odo;
 	private Navigation navigate;
@@ -24,6 +34,14 @@ public class LightLocalizer{
 	public static double thetaY;
 	
 	
+	/**
+	 * This constructor requires the <code>Odometer</code> object to update its position, a <code>Navigation</code> object to control the motors during localization,
+	 * and a <code>LSPoller</code> to detect grid lines during the localization process
+	 * 
+	 * @param odo The <code>Odometer</code> object to be passed
+	 * @param navigate The <code>Navigation</code> object to be passed
+	 * @param lsPoller The <code>LSPoller</code> object to be passed
+	 */
 	public LightLocalizer(Odometer odo, Navigation navigate, LSPoller lsPoller) {
 		this.odo = odo;
 		this.navigate = navigate;
@@ -31,7 +49,9 @@ public class LightLocalizer{
 		
 	}
 	
-	// Initiate light localization
+	/**
+	 * Performs the localization process.
+	 */
 	public void localize() {
 		navigate.goStraight(280,280, -23);
 		
@@ -109,6 +129,9 @@ public class LightLocalizer{
 		
 	}
 	
+	/**
+	 * Prevents motor malfunction when switching between movements.
+	 */
 	public void preventTwitch(){
 		navigate.stopMotors();
 		try{

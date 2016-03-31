@@ -27,10 +27,9 @@ public class LSPoller extends Thread {
 	
 	
 	/**
-	 * Constructor takes in a <code>SampleProvider</code> object and a float array for the sampled data.
+	 * Constructor takes in a <code>Port</code> object representing the port which the EV3 color sensor to be polled is connected to.
 	 * 
-	 * @param csValue The <code>SampleProvider</code> that will allow this to fetch samples
-	 * @param colorData Float array to store the sample data
+	 * @param csPort The <code>Port</code> object representing the port the color sensor is connected to 
 	 */
 	public LSPoller(Port csPort) {
 		this.csPort = csPort;
@@ -61,7 +60,8 @@ public class LSPoller extends Thread {
 	/**
 	 * Get the difference between the current result and the last result. If robot is traveling on monochromatic surface
 	 * result should always be zero (ideally) or close to zero. 
-	 * @return
+	 * 
+	 * @return The difference between current polled result and the last result polled
 	 */
 	public synchronized double getDifferentialData() { 
 		return this.difference;

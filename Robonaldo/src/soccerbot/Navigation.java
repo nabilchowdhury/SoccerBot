@@ -10,6 +10,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
  * <p>
  * Only a single instance of both <code>Navigation</code> and <code>Odometer</code> should exist.
  * 
+ * @see Odometer
  * @author Nabil Chowdhury
  * @author Omar Akkila
  */
@@ -33,10 +34,12 @@ public class Navigation {
 	private Object lock;
 	
 	/**
-	 * This constructor assumes two <code>EV3LargeRegualtedMotor</code> objects are linked to the brick 
-	 * and also requires an <code>Odometer</code> to process navigation.
+	 * This constructor assumes two <code>EV3LargeRegualtedMotor</code> objects and two ultrasonic sensors are linked to the brick. 
+	 * An <code>Odometer</code> to process navigation is required.
 	 * 
 	 * @param odometer The odometer object used to retrieve coordinates and heading
+	 * @param left Left ultrasonic sensor
+	 * @param right Right ultrasonic sensor
 	 * @param leftMotor One of two EV3LargeRegulatedMotor objects passed to navigate the robot
 	 * @param rightMOtor Second EV3LargeRegualtedMotor object passed to navigate the robot
 	 */
@@ -56,13 +59,14 @@ public class Navigation {
 	 * the correct heading the robot should face before attempting to travel to 
 	 * the desired coordinate. 
 	 * <p>
-	 * Once the current heading reported by the Odometer is within 0.05 degrees error, the robot
+	 * Once the current heading reported by the Odometer is within 0.04 degrees error, the robot
 	 * will then begin its motion towards the desired coordinate until the distance between the polled
-	 * coordinates grabbed from the Odometer and the desired coordinate is within 0.5 cm.
+	 * coordinates grabbed from the Odometer and the desired coordinate is within 0.2 cm.
 	 * The motors are then stopped.
 	 * 
 	 *  @param x X-position of the desired coordinate
 	 *  @param y Y-position of the desired coordinate
+	 *  @param avoid Perform obstacle avoidance when obstacles are expected if <code>true</code>.
 	 *  @see Odometer
 	 */
 	public void travelTo(double x, double y, boolean avoid) {
@@ -187,11 +191,17 @@ public class Navigation {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
 	
-	//go straight
+	/**
+	 * Travel in a straight line for a certain distance in cm.
+	 * 
+	 * @param lSpd Speed of left motor
+	 * @param rSpd Speed of right motor
+	 * @param distance Distance in cm to be traveled
+	 */
 	public void goStraight(int lSpd, int rSpd, double distance){
 		setSpeeds(lSpd, rSpd, true, SMOOTH);
-			leftMotor.rotate(-convertDistance(W_RADIUS, distance), true);
-			rightMotor.rotate(-convertDistance(W_RADIUS, distance), false);
+		leftMotor.rotate(-convertDistance(W_RADIUS, distance), true);
+		rightMotor.rotate(-convertDistance(W_RADIUS, distance), false);
 	}
 	
 
@@ -211,9 +221,6 @@ public class Navigation {
 	private int convertAngle(double radius, double width, double angle) {
 		return convertDistance(radius, width * angle / 2);
 	}
-	
-	
-	
 	
 	/**
 	 * Calculate the absolute angle to orient this robot toward the coordinate (x, y).
@@ -260,6 +267,7 @@ public class Navigation {
 	 * @param leftSpeed Speed of left motor
 	 * @param rightSpeed Speed of right motor
 	 * @param move Begin motion of motors if <code>true</code> otherwise do nothing
+	 * @param acceleration Acceleration value for each motor. Same value is used for both.
 	 */
 	public void setSpeeds(int leftSpeed, int rightSpeed, boolean move, int acceleration){
 		leftMotor.setSpeed(leftSpeed); leftMotor.setAcceleration(acceleration);
@@ -291,7 +299,16 @@ public class Navigation {
 		rightMotor.backward();
 	}
 	
-	// Bang-bang style controller used to avoid obstacle
+	/**
+	 * Bang-bang style controller for obstacle avoidance.
+	 * 
+	 * @param value Value reported in cm by the ultrasonic sensor through a <code>USPoller</code> object
+	 * @param odoX Current x-value in cm reported by the odometer
+	 * @param odoY Current y-value in cm reported by the odometer
+	 * 
+	 * @see Odometer
+	 * @see USPoller
+	 */
 	private void avoid(double value, double odoX, double odoY){
 		
 		double error = value - BAND;

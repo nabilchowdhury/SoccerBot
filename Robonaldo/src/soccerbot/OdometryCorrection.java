@@ -7,8 +7,8 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
 
 /**
- * <code>OdometryCorrection</code> is a Thread that runs alongside the Odometer thread
- * to correct its reported position using the color sensor to detect black grid lines.
+ * <code>OdometryCorrection</code> is a <code>Thread</code> that runs alongside the Odometer thread
+ * to correct its reported position using the color sensor to detect black grid lines on the field.
  * We know that grid lines are located at various multiples of 15 and so we either adjust
  * the x-position or the y-position reported by the odometer depending on which multiple 
  * of 15 and at what heading the the odometer currently reports.
@@ -22,9 +22,11 @@ public class OdometryCorrection extends Thread {
 	private LSPoller poller;
 
 	/**
-	 * The contructor requires the Odometer thread object being used and initializes the color sensor.
+	 * The constructor requires the Odometer thread object being used and uses the <code>LSPoller</code> passed to retreive 
+	 * color sensor data.
 	 * 
 	 *  @param odometer The odometer thread object to be passed
+	 *  @param poller The <code>LSPoller</code> object to be passed
 	 *  @see Odometer
 	 */
 	public OdometryCorrection(Odometer odometer, LSPoller poller) {
@@ -34,6 +36,9 @@ public class OdometryCorrection extends Thread {
 	}
 
 	/**
+	 * When this thread is ran, this thread will continuously check for black grid lines and, depending on the current position
+	 * being reported by the odometer, will update the odometer position. 
+	 * 
 	 * @see java.lang.Thread#run()
 	 */
 	public void run() {
