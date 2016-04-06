@@ -16,18 +16,14 @@ public class LightLocalizer{
 	
 	private LSPoller lsPoller;
 	
-	//display variables, delete this
-	public static double x;
-	public static double y;
-	public static double deltaT;
-	public static double thetaX;
-	public static double thetaY;
+	private int startingCorner;
 	
 	
-	public LightLocalizer(Odometer odo, Navigation navigate, LSPoller lsPoller) {
+	public LightLocalizer(Odometer odo, Navigation navigate, LSPoller lsPoller, int startingCorner) {
 		this.odo = odo;
 		this.navigate = navigate;
 		this.lsPoller = lsPoller;
+		this.startingCorner = startingCorner;
 		
 	}
 	
@@ -37,10 +33,10 @@ public class LightLocalizer{
 		
 		preventTwitch();
 		
-		navigate.setSpeeds(250, 250, true, 2000);
+		navigate.setSpeeds(200, 200, true, 2000);
 		
 		while(true){
-			if(lsPoller.getDifferentialData() > 0.06){
+			if(lsPoller.getDifferentialData() > 0.13){
 				navigate.stopMotors();
 				Sound.beep();
 				break;
@@ -49,23 +45,23 @@ public class LightLocalizer{
 		
 		preventTwitch();
 		
-		navigate.goStraight(250, 250, 3.3);
+		navigate.goStraight(200, 200, 2.5);
 		
 		preventTwitch();
 		
-		navigate.setSpeeds(250, 250, false, 2000);
+		navigate.setSpeeds(200, 200, false, 2000);
 		navigate.turnTo(Math.PI/2);
 		
 		preventTwitch();
 		
-		navigate.goStraight(280, 280, -8);
+		navigate.goStraight(200, 200, -8);
 		
 		preventTwitch();
 		
-		navigate.setSpeeds(250, 250, true, 2000);
+		navigate.setSpeeds(220, 220, true, 2000);
 		
 		while(true){
-			if(lsPoller.getDifferentialData() > 0.06){
+			if(lsPoller.getDifferentialData() > 0.13){
 				navigate.stopMotors();
 				Sound.beep();
 				break;
@@ -74,7 +70,7 @@ public class LightLocalizer{
 		
 		preventTwitch();
 		
-		navigate.goStraight(250, 250, 9.15);
+		navigate.goStraight(220, 220, 9.6);
 		
 		preventTwitch();
 		
@@ -87,7 +83,7 @@ public class LightLocalizer{
 				navigate.stopMotors();
 				break;
 			}
-			if(lsPoller.getDifferentialData() > 0.06){
+			if(lsPoller.getDifferentialData() > 0.13){
 				count++;
 				Sound.beep();
 			}
@@ -96,15 +92,34 @@ public class LightLocalizer{
 		
 		navigate.setSpeeds(150, 150, false, 6000);
 		
-		navigate.turnTo(Math.toRadians(13));
+		navigate.turnTo(Math.toRadians(-15.8));
 		
 		preventTwitch();
 		
-		navigate.goStraight(150, 150, 5.9);	
+		navigate.goStraight(150, 150, 7.25);	
 		
 		preventTwitch();
-				
-		odo.setX(0.0); odo.setY(0.0); odo.setTheta(90.0);
+		
+
+		// fix for actual competition
+		if(this.startingCorner == 1){
+			double[] position = {0.0, 0.0, 0.0};
+			boolean[] update = {true, true, true};
+			odo.setPosition(position, update);
+		}else if(this.startingCorner == 2){
+			double[] position = {6*30.45, 0.0, 3*Math.PI/2};
+			boolean[] update = {true, true, true};
+			odo.setPosition(position, update);
+		}else if(this.startingCorner == 3){
+			double[] position = {6*30.45, 6*30.45, Math.PI};
+			boolean[] update = {true, true, true};
+			odo.setPosition(position, update);
+		}else if(this.startingCorner == 4){
+			double[] position = {0.0, 6*30.45, Math.PI/2};
+			boolean[] update = {true, true, true};
+			odo.setPosition(position, update);
+		}
+		
 		Sound.beep();
 		
 	}

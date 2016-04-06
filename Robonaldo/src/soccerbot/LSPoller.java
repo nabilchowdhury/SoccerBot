@@ -14,7 +14,6 @@ import lejos.robotics.SampleProvider;
  */
 public class LSPoller extends Thread {
 
-	//color sensor middle
 	private Port csPort;
 	private SensorModes csSensor;
 	private SampleProvider csValue;
