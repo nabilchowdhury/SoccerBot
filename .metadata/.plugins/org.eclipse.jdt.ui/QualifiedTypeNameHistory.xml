@@ -2,8 +2,6 @@
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="java.awt.Button"/>
 <fullyQualifiedTypeName name="lejos.hardware.Button"/>
-<fullyQualifiedTypeName name="lejos.hardware.motor.EV3LargeRegulatedMotor"/>
-<fullyQualifiedTypeName name="lejos.hardware.Sound"/>
 <fullyQualifiedTypeName name="lejos.hardware.lcd.TextLCD"/>
 <fullyQualifiedTypeName name="lejos.robotics.SampleProvider"/>
 <fullyQualifiedTypeName name="lejos.hardware.sensor.EV3UltrasonicSensor"/>
@@ -14,4 +12,6 @@
 <fullyQualifiedTypeName name="lejos.hardware.sensor.EV3ColorSensor"/>
 <fullyQualifiedTypeName name="java.lang.Math"/>
 <fullyQualifiedTypeName name="lejos.hardware.port.Port"/>
+<fullyQualifiedTypeName name="lejos.hardware.Sound"/>
+<fullyQualifiedTypeName name="lejos.hardware.motor.EV3LargeRegulatedMotor"/>
 </qualifiedTypeNameHistroy>

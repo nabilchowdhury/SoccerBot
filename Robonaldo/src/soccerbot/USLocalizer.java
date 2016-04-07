@@ -125,11 +125,11 @@ public class USLocalizer {
 		}
 		
 		
-		// Correct robot to approximately 0 deg heading
+		// Correct robot to angle (//enter details of orientation here)
 		if(angleA < angleB){
 			deltaT = Math.toRadians(30) - (angleA+angleB)/2; // 35.125
 		}else {
-			deltaT = Math.toRadians(218) - (angleA+angleB)/2; //218.5
+			deltaT = Math.toRadians(213) - (angleA+angleB)/2; //218.5
 		}
 		navigate.setSpeeds(ROTATION_SPD, ROTATION_SPD, false, 6000);
 		// Update odometer angle

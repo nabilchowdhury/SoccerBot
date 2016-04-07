@@ -1,5 +1,10 @@
 package soccerbot;
+import java.io.IOException;
+import java.util.HashMap;
+
+import wifi.WifiConnection;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -13,9 +18,13 @@ import lejos.robotics.SampleProvider;
  * the system. 
  */
 public class Robonaldo {
-	public static final TextLCD t = LocalEV3.get().getTextLCD();
+	public static final TextLCD LCD = LocalEV3.get().getTextLCD();
 	
 	private static Object lock;
+	
+	// WIFI
+	private static final String SERVER_IP = "192.168.10.124"; //"localhost";
+	private static final int TEAM_NUMBER = 14;
 	
 	public static final EV3LargeRegulatedMotor loadMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 	public static final EV3LargeRegulatedMotor launchMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
@@ -32,80 +41,127 @@ public class Robonaldo {
 	//Colorsensor T
 	public static final Port colorPortT = LocalEV3.get().getPort("S4");	
 	
-	public static double WIDTH = 19.05;
+	public static double WIDTH = 19.10;
 	public static double RADIUS = 2.072;
 	
 	private final static int FAST = 200, SLOW = 100, REGULAR = 200, SMOOTH = 500, DEFAULT = 6000; 
 	
+	public static int BALL_LLX = 2, BALL_LLY = 2, BALL_URX = 3, BALL_URY = 3;
+	
 	//MAIN METHOD
 	public static void main(String[] args){
-		lock = new Object();
+		
+		USPoller leftPoller = new USPoller(usPortL);
+		USPoller rightPoller = new USPoller(usPortR);
+		LSPoller leftCS = new LSPoller(colorPortT);
+		LSPoller rightCS = new LSPoller(colorPortM);
+		leftPoller.start(); rightPoller.start(); leftCS.start(); rightCS.start();
+		
 		Odometer odo = new Odometer(leftMotor, rightMotor); 
 		Screen lcd = new Screen(odo);
 		odo.start();
 		lcd.start();
 		
-		USPoller leftPoller = new USPoller(usPortL);
-		USPoller rightPoller = new USPoller(usPortR);
-		LSPoller lsPoller = new LSPoller(colorPortM);
-		//LSPoller correctionPoller = new LSPoller(colorPortT);
-		leftPoller.start(); rightPoller.start(); lsPoller.start();	//correctionPoller.start();
 		Navigation navigate = new Navigation(odo,leftPoller, rightPoller, leftMotor, rightMotor);
 		
 		USLocalizer usLocalizer = new USLocalizer(odo, navigate, leftPoller, rightPoller);
-		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, lsPoller);
+		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, leftCS, rightCS, 1);
+		
+		
+		/*
+		navigate.setSpeeds(100, 100, true, 3000);
+		Sound.beep();
+		while(true){
+			
+			if(leftCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(0, rightMotor.getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(leftMotor.getSpeed(), 0, true, 3000);
+			}
+			if(leftMotor.getSpeed() == 0 && rightMotor.getSpeed() == 0){
+				break;
+			}
+		}
+		
+		navigate.setSpeeds(-100, -100, true, 3000);
+		Sound.beep();
+		while(true){
+			
+			if(leftCS.getDifferentialData() > 0.17){
+				navigate.setSpeeds(0, -rightMotor.getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.17){
+				navigate.setSpeeds(-leftMotor.getSpeed(), 0, true, 3000);
+			}
+			if(leftMotor.getSpeed() == 0 && rightMotor.getSpeed() == 0){
+				break;
+			}
+		}*/
+		
 		
 		usLocalizer.localize();
 		lLocalizer.localize();
 		
-		//OdometryCorrection correct = new OdometryCorrection(odo, correctionPoller);
-		//correct.start();
+		//OdometryCorrection correct = new OdometryCorrection(odo, lsPoller);
 		
+		/*
+		navigate.travelTo(0, 6, false);
+		navigate.travelTo(6, 6, false);
+		navigate.travelTo(6, 0, false);
+		navigate.travelTo(0, 0, false);
+		navigate.turnTo(0, 6);*/
 		
-		navigate.goStraight(150, 150, 30.45*4);
-		navigate.setSpeeds(200, 200, false, 6000);
-		navigate.turnTo(Math.PI/2);
-		navigate.goStraight(150, 150, 30.45*6.15);
+		/*
+		navigate.travelTo(BALL_LLX+0.15, 0, true);
 		
-		navigate.stopMotors();
-		try{
-			Thread.sleep(50);
-		}catch(Exception e){}
+		navigate.travelTo(BALL_LLX+0.15, BALL_LLY-1, true);
+		navigate.setSpeeds(150, 150, false, 6000);
+		navigate.turnTo(BALL_LLX+0.15, 0);
+		navigate.preventTwitch();;
+		navigate.goStraight(150, 150, -18);
 		
-		navigate.setSpeeds(300, 300, false, 6000);
-		navigate.turnTo(Math.PI/2);
-		navigate.goStraight(150, 150, -30.45*0.65);
-		
-		navigate.stopMotors();
-		try{
-			Thread.sleep(50);
-		}catch(Exception e){}
-		
-		
-		loadMotor.setSpeed(400);
+		loadMotor.setSpeed(300);
 		loadMotor.rotate(180, false);
+		
+		loadMotor.setSpeed(50);
+		loadMotor.rotate(-125, false);
+		
+		try{Thread.sleep(200);}catch(Exception e){}
+		
+		for(int i=0; i<2; i++){
+			navigate.preventTwitch();
+			navigate.goStraight(150, 150, -8);
+			
+			loadMotor.setSpeed(200);
+			loadMotor.rotate(135, false);
+			try{Thread.sleep(200);}catch(Exception e){}
+			loadMotor.setSpeed(60);
+			loadMotor.rotate(-125, false);	
+		}
+		
+				
+		
+		navigate.preventTwitch();
+		navigate.goStraight(200, 200, 40);
 		
 		launchMotor.setAcceleration(6000); launchMotor.setSpeed(150);
 		launchMotor.rotate(140, false);
 		
-		loadMotor.setAcceleration(500);
-		loadMotor.setSpeed(160);
-		loadMotor.rotate(-120, false);
-		
-		navigate.goStraight(150,150, 5);
-		
-		navigate.setSpeeds(150, 150, false, 6000);
-		navigate.turnTo(3*30.45, 0.5*30.45);
-		
 		try{
 			Thread.sleep(1500);
 		}catch(Exception e){}
-			
-		launchMotor.setAcceleration(6000); launchMotor.setSpeed(600);
-		launchMotor.rotate(-140, false); launchMotor.flt();
-	
-		//System.exit(0);
 		
+		navigate.preventTwitch();
+		
+		navigate.setSpeeds(150,150,false, 6000);
+		
+		navigate.turnTo(3,7);
+		
+		
+		launchMotor.setAcceleration(20000000); launchMotor.setSpeed(600);
+		launchMotor.rotate(-110, false); launchMotor.flt();
+		*/				
 	}
 	
 	/**
