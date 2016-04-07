@@ -14,38 +14,64 @@ public class LightLocalizer{
 	private Odometer odo;
 	private Navigation navigate;
 	
-	private LSPoller lsPoller;
+	private LSPoller leftCS;
+	private LSPoller rightCS;
 	
 	private int startingCorner;
 	
 	
-	public LightLocalizer(Odometer odo, Navigation navigate, LSPoller lsPoller, int startingCorner) {
+	public LightLocalizer(Odometer odo, Navigation navigate, LSPoller leftCS, LSPoller rightCS, int startingCorner) {
 		this.odo = odo;
 		this.navigate = navigate;
-		this.lsPoller = lsPoller;
+		this.leftCS = leftCS;
+		this.rightCS = rightCS;
 		this.startingCorner = startingCorner;
 		
 	}
 	
 	// Initiate light localization
 	public void localize() {
-		navigate.goStraight(280,280, -23);
+		navigate.goStraight(300,300, -23);
 		
 		preventTwitch();
 		
-		navigate.setSpeeds(200, 200, true, 2000);
+		correctAngle();
 		
-		while(true){
-			if(lsPoller.getDifferentialData() > 0.13){
+		/*
+		navigate.setSpeeds(200, 200, true, 6000);
+		while(true){	
+			if(leftCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(0, navigate.getRMotor().getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(navigate.getLMotor().getSpeed(), 0, true, 3000);
+			}
+			if(navigate.getRMotor().getSpeed() == 0 && navigate.getLMotor().getSpeed() == 0){
 				navigate.stopMotors();
 				Sound.beep();
 				break;
 			}
 		}
 		
+		navigate.setSpeeds(-100, -100, true, 6000);
+		while(true){	
+			if(leftCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(0, -navigate.getRMotor().getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(-navigate.getLMotor().getSpeed(), 0, true, 3000);
+			}
+			if(navigate.getRMotor().getSpeed() == 0 && navigate.getLMotor().getSpeed() == 0){
+				navigate.stopMotors();
+				break;
+			}
+		}*/
+		
+		
+		
 		preventTwitch();
 		
-		navigate.goStraight(200, 200, 2.5);
+		navigate.goStraight(200, 200, 4.5);
 		
 		preventTwitch();
 		
@@ -58,19 +84,42 @@ public class LightLocalizer{
 		
 		preventTwitch();
 		
-		navigate.setSpeeds(220, 220, true, 2000);
+		correctAngle();
 		
-		while(true){
-			if(lsPoller.getDifferentialData() > 0.13){
+		/*
+		navigate.setSpeeds(200, 200, true, 6000);
+		while(true){	
+			if(leftCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(0, navigate.getRMotor().getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(navigate.getLMotor().getSpeed(), 0, true, 3000);
+			}
+			if(navigate.getRMotor().getSpeed() == 0 && navigate.getLMotor().getSpeed() == 0){
 				navigate.stopMotors();
 				Sound.beep();
 				break;
 			}
 		}
 		
+		
+		navigate.setSpeeds(-100, -100, true, 6000);
+		while(true){	
+			if(leftCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(0, -navigate.getRMotor().getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(-navigate.getLMotor().getSpeed(), 0, true, 3000);
+			}
+			if(navigate.getRMotor().getSpeed() == 0 && navigate.getLMotor().getSpeed() == 0){
+				navigate.stopMotors();
+				break;
+			}
+		}*/
+		
 		preventTwitch();
 		
-		navigate.goStraight(220, 220, 9.6);
+		navigate.goStraight(220, 220, 11.3);
 		
 		preventTwitch();
 		
@@ -83,7 +132,7 @@ public class LightLocalizer{
 				navigate.stopMotors();
 				break;
 			}
-			if(lsPoller.getDifferentialData() > 0.13){
+			if(leftCS.getDifferentialData() > 0.13){
 				count++;
 				Sound.beep();
 			}
@@ -92,11 +141,11 @@ public class LightLocalizer{
 		
 		navigate.setSpeeds(150, 150, false, 6000);
 		
-		navigate.turnTo(Math.toRadians(-15.8));
+		navigate.turnTo(Math.toRadians(-14.4));
 		
 		preventTwitch();
 		
-		navigate.goStraight(150, 150, 7.25);	
+		navigate.goStraight(150, 150, 7.95);	
 		
 		preventTwitch();
 		
@@ -122,6 +171,39 @@ public class LightLocalizer{
 		
 		Sound.beep();
 		
+	}
+	
+	// NEW METHOD
+	// uses both light sensors to correct angle with grid lines. Extremely useful
+	public void correctAngle(){
+		navigate.setSpeeds(200, 200, true, 6000);
+		while(true){	
+			if(leftCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(0, navigate.getRMotor().getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(navigate.getLMotor().getSpeed(), 0, true, 3000);
+			}
+			if(navigate.getRMotor().getSpeed() == 0 && navigate.getLMotor().getSpeed() == 0){
+				navigate.stopMotors();
+				Sound.beep();
+				break;
+			}
+		}
+		
+		navigate.setSpeeds(-100, -100, true, 6000);
+		while(true){	
+			if(leftCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(0, -navigate.getRMotor().getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(-navigate.getLMotor().getSpeed(), 0, true, 3000);
+			}
+			if(navigate.getRMotor().getSpeed() == 0 && navigate.getLMotor().getSpeed() == 0){
+				navigate.stopMotors();
+				break;
+			}
+		}
 	}
 	
 	public void preventTwitch(){

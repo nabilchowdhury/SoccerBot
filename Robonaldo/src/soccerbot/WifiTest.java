@@ -23,6 +23,11 @@ import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 
+/////////////////////////////////////
+// NOTE TO OMAR: IGNORE THIS CLASS //
+// ONLY FOR TESTING                //
+/////////////////////////////////////
+
 public class WifiTest {
 	// example call of the transmission protocol
 	// The print function is just for debugging to make sure data is received correctly

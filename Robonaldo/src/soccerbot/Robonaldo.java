@@ -53,98 +53,118 @@ public class Robonaldo {
 		
 		USPoller leftPoller = new USPoller(usPortL);
 		USPoller rightPoller = new USPoller(usPortR);
-		LSPoller lsPoller = new LSPoller(colorPortT);
-		leftPoller.start(); rightPoller.start(); lsPoller.start();	//correctionPoller.start();
+		LSPoller leftCS = new LSPoller(colorPortT);
+		LSPoller rightCS = new LSPoller(colorPortM);
+		leftPoller.start(); rightPoller.start(); leftCS.start(); rightCS.start();
 		
-		WifiConnection conn = null;
-		try {
-			conn = new WifiConnection(SERVER_IP, TEAM_NUMBER);
-		} catch (IOException e) {
-			LCD.drawString("Connection failed", 0, 8);
+		Odometer odo = new Odometer(leftMotor, rightMotor); 
+		Screen lcd = new Screen(odo);
+		odo.start();
+		lcd.start();
+		
+		Navigation navigate = new Navigation(odo,leftPoller, rightPoller, leftMotor, rightMotor);
+		
+		USLocalizer usLocalizer = new USLocalizer(odo, navigate, leftPoller, rightPoller);
+		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, leftCS, rightCS, 1);
+		
+		
+		/*
+		navigate.setSpeeds(100, 100, true, 3000);
+		Sound.beep();
+		while(true){
+			
+			if(leftCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(0, rightMotor.getSpeed(), true, 3000);
+			}
+			if(rightCS.getDifferentialData() > 0.13){
+				navigate.setSpeeds(leftMotor.getSpeed(), 0, true, 3000);
+			}
+			if(leftMotor.getSpeed() == 0 && rightMotor.getSpeed() == 0){
+				break;
+			}
 		}
 		
-		//example use of StartData
-		LCD.clear();
-		if (conn != null){
-			HashMap<String,Integer> t = conn.StartData;
-			if (t == null) {
-				LCD.drawString("Failed to read transmission", 0, 5);
-			} else {
-				LCD.drawString("Transmission read", 0, 5);
-				LCD.drawString(t.toString(), 0, 6);		
+		navigate.setSpeeds(-100, -100, true, 3000);
+		Sound.beep();
+		while(true){
+			
+			if(leftCS.getDifferentialData() > 0.17){
+				navigate.setSpeeds(0, -rightMotor.getSpeed(), true, 3000);
 			}
-			
-			Odometer odo = new Odometer(leftMotor, rightMotor); 
-			Screen lcd = new Screen(odo);
-			odo.start();
-			lcd.start();
-			
-			Navigation navigate = new Navigation(odo,leftPoller, rightPoller, leftMotor, rightMotor);
-			
-			USLocalizer usLocalizer = new USLocalizer(odo, navigate, leftPoller, rightPoller);
-			LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, lsPoller, t.get("OSC"));
-			
-			usLocalizer.localize();
-			lLocalizer.localize();
-			
-			//OdometryCorrection correct = new OdometryCorrection(odo, lsPoller);
-			
-			navigate.travelTo(BALL_LLX+0.15, 0, true);
-			
-			//correct.start();
-			
-			navigate.travelTo(BALL_LLX+0.15, BALL_LLY-1, true);
-			navigate.setSpeeds(150, 150, false, 6000);
-			navigate.turnTo(BALL_LLX+0.15, 0);
-			navigate.preventTwitch();;
-			navigate.goStraight(150, 150, -18);
-			
-			loadMotor.setSpeed(300);
-			loadMotor.rotate(180, false);
-			
-			loadMotor.setSpeed(50);
-			loadMotor.rotate(-120, false);
-					
-			
-			for(int i=0; i<2; i++){
-				navigate.preventTwitch();
-				navigate.goStraight(150, 150, -7);
-				
-				loadMotor.setSpeed(200);
-				loadMotor.rotate(130, false);
-				
-				loadMotor.setSpeed(50);
-				loadMotor.rotate(-120, false);	
+			if(rightCS.getDifferentialData() > 0.17){
+				navigate.setSpeeds(-leftMotor.getSpeed(), 0, true, 3000);
 			}
-			
-			
-			launchMotor.setAcceleration(6000); launchMotor.setSpeed(150);
-			launchMotor.rotate(140, false);
-			
-			
-			
+			if(leftMotor.getSpeed() == 0 && rightMotor.getSpeed() == 0){
+				break;
+			}
+		}*/
+		
+		
+		usLocalizer.localize();
+		lLocalizer.localize();
+		
+		//OdometryCorrection correct = new OdometryCorrection(odo, lsPoller);
+		
+		/*
+		navigate.travelTo(0, 6, false);
+		navigate.travelTo(6, 6, false);
+		navigate.travelTo(6, 0, false);
+		navigate.travelTo(0, 0, false);
+		navigate.turnTo(0, 6);*/
+		
+		/*
+		navigate.travelTo(BALL_LLX+0.15, 0, true);
+		
+		
+		
+		navigate.travelTo(BALL_LLX+0.15, BALL_LLY-1, true);
+		navigate.setSpeeds(150, 150, false, 6000);
+		navigate.turnTo(BALL_LLX+0.15, 0);
+		navigate.preventTwitch();;
+		navigate.goStraight(150, 150, -18);
+		
+		loadMotor.setSpeed(300);
+		loadMotor.rotate(180, false);
+		
+		loadMotor.setSpeed(50);
+		loadMotor.rotate(-125, false);
+		
+		try{Thread.sleep(200);}catch(Exception e){}
+		
+		for(int i=0; i<2; i++){
 			navigate.preventTwitch();
-			navigate.goStraight(200, 200, 60);
+			navigate.goStraight(150, 150, -8);
 			
-			try{
-				Thread.sleep(1500);
-			}catch(Exception e){}
-			
-			navigate.preventTwitch();
-			
-			navigate.setSpeeds(150,150,false, 6000);
-			
-			navigate.turnTo(3,7);
-			
-			
-			launchMotor.setAcceleration(20000000); launchMotor.setSpeed(600);
-			launchMotor.rotate(-110, false); launchMotor.flt();
-			
-			
-			
-		} else {
-			LCD.drawString("Connection failed", 0, 5);
+			loadMotor.setSpeed(200);
+			loadMotor.rotate(135, false);
+			try{Thread.sleep(200);}catch(Exception e){}
+			loadMotor.setSpeed(60);
+			loadMotor.rotate(-125, false);	
 		}
+		
+				
+		
+		navigate.preventTwitch();
+		navigate.goStraight(200, 200, 40);
+		
+		launchMotor.setAcceleration(6000); launchMotor.setSpeed(150);
+		launchMotor.rotate(140, false);
+		
+		try{
+			Thread.sleep(1500);
+		}catch(Exception e){}
+		
+		navigate.preventTwitch();
+		
+		navigate.setSpeeds(150,150,false, 6000);
+		
+		navigate.turnTo(3,7);
+		
+		
+		launchMotor.setAcceleration(20000000); launchMotor.setSpeed(600);
+		launchMotor.rotate(-110, false); launchMotor.flt();
+		*/
+		
 					
 	}
 	

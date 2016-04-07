@@ -18,8 +18,8 @@ public class Navigation {
 	// class constants
 	private final static double W_RADIUS = 2.072;
 	private final static double W_BASE = 19.10;
-	private final static int FAST = 200, SLOW = 200, REGULAR = 160, SMOOTH = 3000, DEFAULT = 6000;
-	private final static double DEG_ERR = 0.005, CM_ERR = 0.7, BAND = 7, FILTER_DIST = 7, TILE_LENGTH = 30.45;
+	private final static int FAST = 200, SLOW = 200, REGULAR = 250, SMOOTH = 3000, DEFAULT = 6000;
+	private final static double DEG_ERR = 0.002, CM_ERR = 0.7, BAND = 7, FILTER_DIST = 7, TILE_LENGTH = 30.45;
 	
 	private double filterCount;
 	// motors
@@ -74,7 +74,7 @@ public class Navigation {
 			x = x*TILE_LENGTH;
 			y = y*TILE_LENGTH;
 			
-			this.setSpeeds(SLOW, SLOW, false, DEFAULT);
+			this.setSpeeds(REGULAR, REGULAR, false, SMOOTH);
 			
 			thetaD = (Math.atan2(x - odometer.getX(), y - odometer.getY()));
 			
@@ -117,7 +117,7 @@ public class Navigation {
 					preventTwitch();
 				}*/
 			
-				this.setSpeeds(SLOW, SLOW, true, SMOOTH);
+				this.setSpeeds(REGULAR, REGULAR, true, SMOOTH);
 				
 				///////////////////////
 				// OBSTACLE AVOIDANCE//
@@ -393,6 +393,14 @@ public class Navigation {
 		try{
 			Thread.sleep(50);
 		}catch(Exception e){}
+	}
+	
+	public EV3LargeRegulatedMotor getRMotor(){
+		return rightMotor;
+	}
+	
+	public EV3LargeRegulatedMotor getLMotor(){
+		return leftMotor;
 	}
 	
 	
