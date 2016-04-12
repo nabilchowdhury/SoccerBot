@@ -129,7 +129,7 @@ public class Robonaldo {
 			if(SC == 3){
 				navigate.travelTo(MAX-1, (O_LINE-1)/2,true, true);
 			}else if(SC == 4){
-				navigate.travelTo(0, (O_LINE-1)/2,true, true);
+				navigate.travelTo(MIN+1, (O_LINE-1)/2,true, true);
 			}
 			navigate.travelTo((MAX-1)/2, (O_LINE-1)/2, true, false);
 			Sound.beep();
@@ -141,42 +141,34 @@ public class Robonaldo {
 				navigate.turnTo(0, 0);
 				navigate.odometryCorrection((BALL_LLX+1)*30.5, (BALL_LLY-1)*30.5);
 				navigate.goStraight(150,150, -4);
+				navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(Math.PI/2);
 			}else if(BALL_URX == MAX) {
+				//navigate.travelTo(BALL_LLX,0,true, true);
 				navigate.travelTo(BALL_LLX,BALL_LLY-1,true, false);
 				navigate.setSpeeds(200, 200, false, 6000);
-				navigate.turnTo((MAX-1)*30.5, 0);
+				navigate.turnTo(6*30.5, 0);
 				navigate.odometryCorrection((BALL_LLX)*30.5, (BALL_LLY-1)*30.5);
 	 			navigate.goStraight(150,150, 4);
+	 			navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(Math.PI/2);
 			}else if(BALL_LLY == MIN){
 				navigate.travelTo(BALL_LLX-1,BALL_LLY+1,true, false);
 				navigate.setSpeeds(200, 200, false, 6000);
 				navigate.turnTo(0, 0);
 				navigate.odometryCorrection((BALL_LLX-1)*30.5, (BALL_LLY+1)*30.5);
 				navigate.goStraight(150,150, 4);
-			}else if(BALL_URY == MAX){
-				if(BALL_LLX < (MAX-1)/2){
-					navigate.travelTo(0, (MAX-1)/2, true, false);
-					navigate.setSpeeds(200, 200, false, 6000);
-					navigate.turnTo(0, MAX*30.5);
-					navigate.odometryCorrection(0, ((MAX-1)/2)*30.5);
-					navigate.travelTo(0, MAX-1, true, true);
-					
-				}else{
-					navigate.travelTo(MAX-1, (MAX-1)/2, true, false);
-					navigate.setSpeeds(200, 200, false, 6000);
-					navigate.turnTo((MAX-1)*30.5, MAX*30.5);
-					navigate.odometryCorrection((MAX-1)*30.5, ((MAX-1)/2)*30.5);
-					navigate.travelTo(MAX-1, MAX-1, true, true);
-				}
-				navigate.travelTo(BALL_LLX+1,BALL_LLY,true, false);
 				navigate.setSpeeds(200, 200, false, 6000);
-				navigate.turnTo((MAX)*30.5, (MAX-1)*30.5);
-				navigate.odometryCorrection((BALL_LLX+1)*30.5, (BALL_LLY)*30.5);
+				navigate.turnTo(Math.PI/2);
+			}else if(BALL_URY == MAX){
+				//navigate.travelTo(0, BALL_LLY,true, true);
+				navigate.travelTo(BALL_LLX-1,BALL_LLY,true, true);
+				navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(12*30.5, 6*30.5);
+				navigate.odometryCorrection(BALL_LLX-1, BALL_LLY);
 				navigate.goStraight(150,150, 4);
 			}
 			
-			navigate.setSpeeds(200, 200, false, 6000);
-			navigate.turnTo(Math.PI/2);
 			
 			navigate.goStraight(150,150,-20.1);
 			
@@ -190,24 +182,6 @@ public class Robonaldo {
 			
 		}else{
 			//defence
-			if(SC == 1){
-				navigate.travelTo(0, MAX-2,true, true);
-				navigate.travelTo((MAX-1)/2 - GOAL_WIDTH/2, MAX-2, true, false);
-			}else if(SC == 2){
-				navigate.travelTo(MAX-1, MAX-2,true, true);
-				navigate.travelTo(MAX - 1 - ((MAX-1)/2 - GOAL_WIDTH/2), MAX-2, true, false);
-//				navigate.setSpeeds(200, 200, false, 6000);
-//				navigate.turnTo(Math.PI);
-				while(true){
-					navigate.goStraight(400, 400, GOAL_WIDTH*30.5);
-					navigate.goStraight(400, 400, -GOAL_WIDTH*30.5);
-				}
-			}
-			Sound.beep();
-			// defence stuff
-			
-			
-			
 		}
 		
 		navigate.travelTo(0,0,true, false);

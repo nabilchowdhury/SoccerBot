@@ -196,16 +196,9 @@ public class Robonaldo {
 			}else if(SC == 2){
 				navigate.travelTo(MAX-1, MAX-2,true, true);
 				navigate.travelTo(MAX - 1 - ((MAX-1)/2 - GOAL_WIDTH/2), MAX-2, true, false);
-//				navigate.setSpeeds(200, 200, false, 6000);
-//				navigate.turnTo(Math.PI);
-				while(true){
-					navigate.goStraight(400, 400, GOAL_WIDTH*30.5);
-					navigate.goStraight(400, 400, -GOAL_WIDTH*30.5);
-				}
 			}
 			Sound.beep();
 			// defence stuff
-			
 			
 			
 		}
