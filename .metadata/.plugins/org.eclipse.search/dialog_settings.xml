@@ -3,8 +3,8 @@
 	<section name="DialogBounds_SearchDialog">
 		<item value="567" key="DIALOG_WIDTH"/>
 		<item value="186" key="DIALOG_Y_ORIGIN"/>
-		<item value="387" key="DIALOG_X_ORIGIN"/>
 		<item value="420" key="DIALOG_HEIGHT"/>
+		<item value="387" key="DIALOG_X_ORIGIN"/>
 		<item value="1|.SF NS Text|11.0|0|COCOA|1|.SFNSText-Regular" key="DIALOG_FONT_NAME"/>
 	</section>
 	<section name="Search">

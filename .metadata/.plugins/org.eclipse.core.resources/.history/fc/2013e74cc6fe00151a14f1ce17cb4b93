@@ -1,0 +1,118 @@
+package soccerbot;
+
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+
+/**
+ * NOTE: Class is still under construction - may have more methods in the future.
+ * 
+ * Attacker is tasked with interacting with the motors responsible for loading balls and launching them
+ * and to provide those functionalities
+ * 
+ * @author Nabil Chowdhury
+ */
+
+public class Attacker {
+	private Navigation navigate;
+	
+	private EV3LargeRegulatedMotor loadMotor;
+	private EV3LargeRegulatedMotor launchMotor;
+	
+	private int x;
+	private int y;
+	
+	/**
+	 * This constructor requires a <code>Navigation</code> object and the two <code>EV3LargeRegulatedMotor</code> objects 
+	 * representing the motors responsible for the ball-loading mechanism and the launching mechanism
+	 * 
+	 * @param navigate The singleton <code>Navigation</code> object
+	 * @param loadMotor Motor connected to the loading mechanism
+	 * @param launchMotor Motor connected to the launching mechanism
+	 */
+	
+	public Attacker(Navigation navigate, EV3LargeRegulatedMotor loadMotor, EV3LargeRegulatedMotor launchMotor, int sx, int sy){
+		this.navigate = navigate;
+		
+		this.loadMotor = loadMotor;
+		this.launchMotor = launchMotor;
+		
+		this.x = sx;
+		this.y = sy;
+	}
+	
+	/**
+	 * This method is responsible for loading balls into the loader and launching them.
+	 * The loadMotor must start with the loader pointing straight upwards with the launchMotor
+	 * initially resting on the actual loadMotor.
+	 * <p>
+	 * This will start by navigating and using the launchMotor to load balls into the loader.
+	 * After balls have been loaded, the launchMotor will be used to launch them one-by-one.
+	 * 
+	 */
+	public void attack(){
+		// rotate motor
+		loadMotor.setSpeed(100);
+		loadMotor.rotate(150, false); 
+		for(int i=0; i<3; i++){
+			// land softly on first ball
+			loadMotor.flt();
+			try{Thread.sleep(1000);}catch(Exception e){}
+			// obtain first ball
+			loadMotor.setAcceleration(10000);
+			loadMotor.setSpeed(400);
+			loadMotor.rotate(30, false);
+			try{Thread.sleep(500);}catch(Exception e){}
+			loadMotor.setAcceleration(6000);
+			loadMotor.resetTachoCount();
+			// move cage back by 60 deg and lock it in place
+			loadMotor.setSpeed(100);
+			loadMotor.rotate(-70, false); loadMotor.setSpeed(0); loadMotor.forward();
+			
+			// move robot 10 cm forward for next ball
+			if(i != 2){
+				navigate.goStraight(150, 150, -8);
+			}
+		}
+		
+		loadMotor.flt();
+		
+		navigate.goStraight(150, 150, 40);
+		
+		navigate.travelTo(3, 3, true); 
+		
+		navigate.setSpeeds(150, 150, false, 6000);
+		navigate.turnTo(x*30.5, y*30.5);
+		
+		launchMotor.setAcceleration(6000); launchMotor.setSpeed(150);
+		launchMotor.rotate(140, false);
+		try{
+			Thread.sleep(1500);
+		}catch(Exception e){}
+		
+		loadMotor.setSpeed(80);
+		loadMotor.rotate(-125, false); loadMotor.setSpeed(0); loadMotor.forward();
+		
+		launchMotor.setAcceleration(20000000); launchMotor.setSpeed(600);
+		launchMotor.rotate(-110, false); launchMotor.flt();
+		
+		/*
+		navigate.goStraight(200, 200, 40);
+		
+		launchMotor.setAcceleration(6000); launchMotor.setSpeed(150);
+		launchMotor.rotate(140, false);
+		
+		try{
+			Thread.sleep(1500);
+		}catch(Exception e){}
+		
+		navigate.preventTwitch();
+		
+		navigate.setSpeeds(150,150,false, 6000);
+		
+		navigate.turnTo(3,7);
+		
+		
+		launchMotor.setAcceleration(20000000); launchMotor.setSpeed(600);
+		launchMotor.rotate(-110, false); launchMotor.flt();
+		*/
+	}
+}

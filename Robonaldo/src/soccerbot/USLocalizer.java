@@ -127,7 +127,7 @@ public class USLocalizer {
 		
 		// Correct robot to angle (//enter details of orientation here)
 		if(angleA < angleB){
-			deltaT = Math.toRadians(30) - (angleA+angleB)/2; // 35.125
+			deltaT = Math.toRadians(31) - (angleA+angleB)/2; // 35.125
 		}else {
 			deltaT = Math.toRadians(213) - (angleA+angleB)/2; //218.5
 		}

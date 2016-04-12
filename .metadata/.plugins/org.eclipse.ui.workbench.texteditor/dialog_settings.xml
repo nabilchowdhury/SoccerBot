@@ -3,28 +3,29 @@
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
 		<item value="265" key="DIALOG_WIDTH"/>
 		<item value="70" key="DIALOG_Y_ORIGIN"/>
-		<item value="884" key="DIALOG_X_ORIGIN"/>
 		<item value="399" key="DIALOG_HEIGHT"/>
+		<item value="884" key="DIALOG_X_ORIGIN"/>
 		<item value="1|.SF NS Text|11.0|0|COCOA|1|.SFNSText-Regular" key="DIALOG_FONT_NAME"/>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="true" key="wrap"/>
-		<item value="false" key="casesensitive"/>
 		<item value="false" key="isRegEx"/>
+		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="leftCS" key="selection"/>
+		<item value="REGULAR" key="selection"/>
 		<list key="findhistory">
-			<item value="lspoller"/>
-			<item value="false"/>
-			<item value="prevent"/>
-			<item value="distance"/>
-			<item value="30.45"/>
-			<item value="setspeeds"/>
-			<item value="obstacle avoi"/>
+			<item value="regular"/>
+			<item value="slow"/>
+			<item value="smooth"/>
+			<item value="angleWidth"/>
 			<item value="gostraight"/>
+			<item value="30.45"/>
+			<item value="turnto"/>
+			<item value="this.setSpeeds(REGULAR, REGULAR, true, SMOOTH);"/>
 		</list>
 		<list key="replacehistory">
+			<item value="ANGLE_WIDTH"/>
 			<item value="leftCS"/>
 			<item value="TILE_LENGTH"/>
 			<item value="20"/>

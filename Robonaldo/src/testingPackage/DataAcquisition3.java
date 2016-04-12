@@ -125,7 +125,7 @@ public class DataAcquisition3 implements TimerListener{
 		float toReturn=d2-d1;
 		d1=d2;
 		return toReturn;
-		}	
+	}	
 	
 
 }

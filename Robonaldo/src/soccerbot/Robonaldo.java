@@ -23,13 +23,13 @@ public class Robonaldo {
 	private static Object lock;
 	
 	// WIFI
-	private static final String SERVER_IP = "192.168.10.124"; //"localhost";
+	private static final String SERVER_IP = "192.168.43.243"; //"localhost";
 	private static final int TEAM_NUMBER = 14;
 	
 	public static final EV3LargeRegulatedMotor loadMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 	public static final EV3LargeRegulatedMotor launchMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
-	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
-	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
 	
 	//US
 	public static final Port usPortL = LocalEV3.get().getPort("S2");
@@ -41,16 +41,27 @@ public class Robonaldo {
 	//Colorsensor T
 	public static final Port colorPortT = LocalEV3.get().getPort("S4");	
 	
-	public static double WIDTH = 19.10;
+	public static double WIDTH = 19.08;
 	public static double RADIUS = 2.072;
 	
 	private final static int FAST = 200, SLOW = 100, REGULAR = 200, SMOOTH = 500, DEFAULT = 6000; 
 	
-	public static int BALL_LLX = 2, BALL_LLY = 2, BALL_URX = 3, BALL_URY = 3;
+	// field constants
+	public static double MIN = -1;
+	public static double MAX = 7;
+	
+	
 	
 	//MAIN METHOD
 	public static void main(String[] args){
 		
+		// Game parameters (Obtained from hashtable)
+		int BALL_LLX, BALL_LLY, BALL_URX, BALL_URY; // ball tile parameters
+		double SHOOT_X1, SHOOT_Y1, SHOOT_X2, SHOOT_Y2; // shootin
+		int SC; // starting corner
+		int GOAL_WIDTH, D_LINE, O_LINE;
+		String MODE = null;
+
 		USPoller leftPoller = new USPoller(usPortL);
 		USPoller rightPoller = new USPoller(usPortR);
 		LSPoller leftCS = new LSPoller(colorPortT);
@@ -62,106 +73,119 @@ public class Robonaldo {
 		odo.start();
 		lcd.start();
 		
-		Navigation navigate = new Navigation(odo,leftPoller, rightPoller, leftMotor, rightMotor);
+		Navigation navigate = new Navigation(odo,leftPoller, rightPoller, leftCS, rightCS, leftMotor, rightMotor);
 		
 		USLocalizer usLocalizer = new USLocalizer(odo, navigate, leftPoller, rightPoller);
-		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, leftCS, rightCS, 1);
 		
+		WifiConnection conn = null;
+		try {
+			conn = new WifiConnection(SERVER_IP, TEAM_NUMBER);
+		} catch (IOException e) {
+			//LCD.drawString("Connection failed", 0, 8);
+		}
 		
-		/*
-		navigate.setSpeeds(100, 100, true, 3000);
-		Sound.beep();
+		LCD.clear();
 		while(true){
-			
-			if(leftCS.getDifferentialData() > 0.13){
-				navigate.setSpeeds(0, rightMotor.getSpeed(), true, 3000);
-			}
-			if(rightCS.getDifferentialData() > 0.13){
-				navigate.setSpeeds(leftMotor.getSpeed(), 0, true, 3000);
-			}
-			if(leftMotor.getSpeed() == 0 && rightMotor.getSpeed() == 0){
-				break;
+			if (conn != null){
+				HashMap<String,Integer> t = conn.StartData;
+				if (t == null) {
+					LCD.drawString("Failed to read transmission", 0, 5);
+				} else {
+					LCD.drawString("Transmission read", 0, 5);
+					LCD.drawString(t.toString(), 0, 6);
+					
+					//////////
+					if(t.get("OTN") == 14){
+						SC = t.get("OSC");
+						MODE = "ATTACK";
+					}else{
+						SC = t.get("DSC");
+					}
+					
+					BALL_LLX = t.get("ll-x");
+					BALL_LLY = t.get("ll-y");
+					BALL_URX = t.get("ur-x");
+					BALL_URY = t.get("ur-y");
+					GOAL_WIDTH = t.get("w1");
+					D_LINE = t.get("d1");
+					O_LINE = t.get("d2");
+					
+					break;
+					
+				}
+			} else {
+				LCD.drawString("Connection failed", 0, 5);
 			}
 		}
 		
-		navigate.setSpeeds(-100, -100, true, 3000);
-		Sound.beep();
-		while(true){
-			
-			if(leftCS.getDifferentialData() > 0.17){
-				navigate.setSpeeds(0, -rightMotor.getSpeed(), true, 3000);
-			}
-			if(rightCS.getDifferentialData() > 0.17){
-				navigate.setSpeeds(-leftMotor.getSpeed(), 0, true, 3000);
-			}
-			if(leftMotor.getSpeed() == 0 && rightMotor.getSpeed() == 0){
-				break;
-			}
-		}*/
-		
-		
+		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, leftCS, rightCS, SC);
 		usLocalizer.localize();
 		lLocalizer.localize();
 		
-		//OdometryCorrection correct = new OdometryCorrection(odo, lsPoller);
+		// navigate to zone first
 		
-		/*
-		navigate.travelTo(0, 6, false);
-		navigate.travelTo(6, 6, false);
-		navigate.travelTo(6, 0, false);
-		navigate.travelTo(0, 0, false);
-		navigate.turnTo(0, 6);*/
-		
-		/*
-		navigate.travelTo(BALL_LLX+0.15, 0, true);
-		
-		navigate.travelTo(BALL_LLX+0.15, BALL_LLY-1, true);
-		navigate.setSpeeds(150, 150, false, 6000);
-		navigate.turnTo(BALL_LLX+0.15, 0);
-		navigate.preventTwitch();;
-		navigate.goStraight(150, 150, -18);
-		
-		loadMotor.setSpeed(300);
-		loadMotor.rotate(180, false);
-		
-		loadMotor.setSpeed(50);
-		loadMotor.rotate(-125, false);
-		
-		try{Thread.sleep(200);}catch(Exception e){}
-		
-		for(int i=0; i<2; i++){
-			navigate.preventTwitch();
-			navigate.goStraight(150, 150, -8);
+		if(MODE.equals("ATTACK")){
+			//navigate to zone first
+			if(SC == 3){
+				navigate.travelTo(MAX-1, (O_LINE-1)/2,true, true);
+			}else if(SC == 4){
+				navigate.travelTo(MIN+1, (O_LINE-1)/2,true, true);
+			}
+			navigate.travelTo((MAX-1)/2, (O_LINE-1)/2, true, false);
+			Sound.beep();
 			
-			loadMotor.setSpeed(200);
-			loadMotor.rotate(135, false);
-			try{Thread.sleep(200);}catch(Exception e){}
-			loadMotor.setSpeed(60);
-			loadMotor.rotate(-125, false);	
+			// change values for demo
+			if(BALL_LLX == MIN){ // done
+				navigate.travelTo(BALL_LLX+1,BALL_LLY-1,true, false);
+				navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(0, 0);
+				navigate.odometryCorrection((BALL_LLX+1)*30.5, (BALL_LLY-1)*30.5);
+				navigate.goStraight(150,150, -4);
+				navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(Math.PI/2);
+			}else if(BALL_URX == MAX) {
+				//navigate.travelTo(BALL_LLX,0,true, true);
+				navigate.travelTo(BALL_LLX,BALL_LLY-1,true, false);
+				navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(6*30.5, 0);
+				navigate.odometryCorrection((BALL_LLX)*30.5, (BALL_LLY-1)*30.5);
+	 			navigate.goStraight(150,150, 4);
+	 			navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(Math.PI/2);
+			}else if(BALL_LLY == MIN){
+				navigate.travelTo(BALL_LLX-1,BALL_LLY+1,true, false);
+				navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(0, 0);
+				navigate.odometryCorrection((BALL_LLX-1)*30.5, (BALL_LLY+1)*30.5);
+				navigate.goStraight(150,150, 4);
+				navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(Math.PI/2);
+			}else if(BALL_URY == MAX){
+				//navigate.travelTo(0, BALL_LLY,true, true);
+				navigate.travelTo(BALL_LLX-1,BALL_LLY,true, true);
+				navigate.setSpeeds(200, 200, false, 6000);
+				navigate.turnTo(12*30.5, 6*30.5);
+				navigate.odometryCorrection(BALL_LLX-1, BALL_LLY);
+				navigate.goStraight(150,150, 4);
+			}
+			
+			
+			navigate.goStraight(150,150,-20.1);
+			
+			SHOOT_X1 = (MAX-1)/2 - GOAL_WIDTH/2;
+			SHOOT_Y1 = MAX;
+			SHOOT_X2 = (MAX-1)/2 + GOAL_WIDTH/2;
+			SHOOT_Y2 = MAX;
+			
+			Attacker attacker = new Attacker(navigate, loadMotor, launchMotor, SHOOT_X1, SHOOT_Y1, SHOOT_X2, SHOOT_Y2);
+			attacker.attack();
+			
+		}else{
+			//defence
 		}
 		
-				
-		
-		navigate.preventTwitch();
-		navigate.goStraight(200, 200, 40);
-		
-		launchMotor.setAcceleration(6000); launchMotor.setSpeed(150);
-		launchMotor.rotate(140, false);
-		
-		try{
-			Thread.sleep(1500);
-		}catch(Exception e){}
-		
-		navigate.preventTwitch();
-		
-		navigate.setSpeeds(150,150,false, 6000);
-		
-		navigate.turnTo(3,7);
-		
-		
-		launchMotor.setAcceleration(20000000); launchMotor.setSpeed(600);
-		launchMotor.rotate(-110, false); launchMotor.flt();
-		*/				
+		navigate.travelTo(0,0,true, false);
+			
 	}
 	
 	/**

@@ -19,7 +19,7 @@ public class USPoller extends Thread{
 	private double filteredDistance;
 	private int FILTER_OUT = 5;
 	private int filterControl;
-	
+	private Object lock;
 	/**
 	 * Takes in a <code>Port</code> object representing the port which the ultrasonic sensor to be sampled
 	 * is connected to.
@@ -32,6 +32,7 @@ public class USPoller extends Thread{
 		this.usSensor = new EV3UltrasonicSensor(usPort);
 		this.usValue = usSensor.getMode("Distance");
 		this.usData = new float[usSensor.sampleSize()];
+		this.lock =  new Object();
 	}
 	
 	/**
@@ -46,20 +47,23 @@ public class USPoller extends Thread{
 			usSensor.fetchSample(usData, 0);
 			this.distance = usData[0]*100;
 			
-			if(this.distance >= 60){
-				filteredDistance = 60;
-			}
-			//filter
-			if (this.distance >= 60 && filterControl < FILTER_OUT) {
-				// bad value, do not set the distance var, however do increment the filter value
-				filterControl++;
-			} else if (this.distance >= 60){
-				// true max distance
-				filteredDistance = 60;
-			} else {
-				// distance went below 255, therefore reset everything.
-				filterControl = 0;
-				filteredDistance = this.distance;
+			synchronized(lock){
+				if(this.distance >= 60){
+					filteredDistance = 60;
+				}
+			
+				//filter
+				if (this.distance >= 60 && filterControl < FILTER_OUT) {
+					// bad value, do not set the distance var, however do increment the filter value
+					filterControl++;
+				} else if (this.distance >= 60){
+					// true max distance
+					filteredDistance = 60;
+				} else {
+					// distance went below 255, therefore reset everything.
+					filterControl = 0;
+					filteredDistance = this.distance;
+				}
 			}
 			
 			// Sleeps for 50 ms
@@ -78,6 +82,10 @@ public class USPoller extends Thread{
 	 * @return Filtered distance in cm sampled from ultrasonic sensor
 	 */
 	public double getDistance(){
-		return this.filteredDistance;
+		double distance;
+		synchronized (lock) {
+			distance = this.filteredDistance;
+		}
+		return distance;
 	}
 }
