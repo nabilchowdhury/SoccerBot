@@ -23,7 +23,7 @@ public class Robonaldo {
 	private static Object lock;
 	
 	// WIFI
-	private static final String SERVER_IP = "192.168.43.243"; //"localhost";
+	private static final String SERVER_IP = "192.168.10.131"; // CHANGE BACK!
 	private static final int TEAM_NUMBER = 14;
 	
 	public static final EV3LargeRegulatedMotor loadMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
@@ -48,7 +48,15 @@ public class Robonaldo {
 	
 	// field constants
 	public static double MIN = -1;
-	public static double MAX = 7;
+	public static double MAX = 11;
+	
+	
+	//parameters
+	public static int BALL_LLX, BALL_LLY, BALL_URX, BALL_URY; // ball tile parameters
+	public static double SHOOT_X1, SHOOT_Y1, SHOOT_X2, SHOOT_Y2; // shootin
+	public static int SC; // starting corner
+	public static int GOAL_WIDTH, D_LINE, O_LINE;
+	public static String MODE = null;
 	
 	
 	
@@ -75,6 +83,7 @@ public class Robonaldo {
 		
 		Navigation navigate = new Navigation(odo,leftPoller, rightPoller, leftCS, rightCS, leftMotor, rightMotor);
 		
+		
 		USLocalizer usLocalizer = new USLocalizer(odo, navigate, leftPoller, rightPoller);
 		
 		WifiConnection conn = null;
@@ -100,6 +109,7 @@ public class Robonaldo {
 						MODE = "ATTACK";
 					}else{
 						SC = t.get("DSC");
+						MODE = "DEFENCE";
 					}
 					
 					BALL_LLX = t.get("ll-x");
@@ -127,21 +137,30 @@ public class Robonaldo {
 		if(MODE.equals("ATTACK")){
 			//navigate to zone first
 			if(SC == 3){
-				navigate.travelTo(MAX-1, (O_LINE-1)/2,true, true);
+				navigate.travelTo(10, 4,true, true);
+				navigate.travelTo(10, 1,true, true);
 			}else if(SC == 4){
-				navigate.travelTo(0, (O_LINE-1)/2,true, true);
+				navigate.travelTo(0, 4,true, true);
+				navigate.travelTo(0, 1,true, true);
 			}
-			navigate.travelTo((MAX-1)/2, (O_LINE-1)/2, true, false);
+			navigate.travelTo(5, 1, true, true);
 			Sound.beep();
 			
 			// change values for demo
+			//do all 4 corners first
 			if(BALL_LLX == MIN){ // done
+				if(BALL_LLY > (MAX-1)/2){
+					navigate.travelTo(0, (O_LINE-1)/2, true, false);
+				}
 				navigate.travelTo(BALL_LLX+1,BALL_LLY-1,true, false);
 				navigate.setSpeeds(200, 200, false, 6000);
 				navigate.turnTo(0, 0);
 				navigate.odometryCorrection((BALL_LLX+1)*30.5, (BALL_LLY-1)*30.5);
 				navigate.goStraight(150,150, -4);
 			}else if(BALL_URX == MAX) {
+				if(BALL_LLY > (MAX-1)/2){
+					navigate.travelTo(MAX-1, (O_LINE-1)/2, true, false);
+				}
 				navigate.travelTo(BALL_LLX,BALL_LLY-1,true, false);
 				navigate.setSpeeds(200, 200, false, 6000);
 				navigate.turnTo((MAX-1)*30.5, 0);
@@ -178,40 +197,55 @@ public class Robonaldo {
 			navigate.setSpeeds(200, 200, false, 6000);
 			navigate.turnTo(Math.PI/2);
 			
-			navigate.goStraight(150,150,-20.1);
+			navigate.goStraight(150,150,-20.3);
 			
-			SHOOT_X1 = (MAX-1)/2 - GOAL_WIDTH/2;
+			SHOOT_X1 = (MAX-1)/2 - (double)(GOAL_WIDTH)/2;
 			SHOOT_Y1 = MAX;
-			SHOOT_X2 = (MAX-1)/2 + GOAL_WIDTH/2;
+			SHOOT_X2 = (MAX-1)/2 + (double)(GOAL_WIDTH)/2;
 			SHOOT_Y2 = MAX;
 			
 			Attacker attacker = new Attacker(navigate, loadMotor, launchMotor, SHOOT_X1, SHOOT_Y1, SHOOT_X2, SHOOT_Y2);
 			attacker.attack();
 			
-		}else{
+		}else if(MODE.equals("DEFENCE")){
 			//defence
 			if(SC == 1){
-				navigate.travelTo(0, MAX-2,true, true);
-				navigate.travelTo((MAX-1)/2 - GOAL_WIDTH/2, MAX-2, true, false);
+				navigate.travelTo(0, 5,true, true);
+				navigate.travelTo(0, 9, true, true);
+				navigate.travelTo(5 - GOAL_WIDTH/2, 9, true, false);
 			}else if(SC == 2){
-				navigate.travelTo(MAX-1, MAX-2,true, true);
-				navigate.travelTo(MAX - 1 - ((MAX-1)/2 - GOAL_WIDTH/2), MAX-2, true, false);
+				navigate.travelTo(10, 5,true, true);
+				navigate.travelTo(10, 9, true, true);
+				navigate.travelTo(10 - (5 + GOAL_WIDTH/2), 9, true, false);
 //				navigate.setSpeeds(200, 200, false, 6000);
 //				navigate.turnTo(Math.PI);
-				while(true){
-					navigate.goStraight(400, 400, GOAL_WIDTH*30.5);
-					navigate.goStraight(400, 400, -GOAL_WIDTH*30.5);
-				}
+			}else if(SC == 3){
+				navigate.travelTo(10, 9, true, true);
+				navigate.travelTo(10 - ((MAX-1)/2 + GOAL_WIDTH/2), 9, true, false);
+			}else if(SC == 4){
+				navigate.travelTo(0, 9, true, true);
+				navigate.travelTo(10 - ((MAX-1)/2 - GOAL_WIDTH/2), 9, true, false);
+//				navigate.setSpeeds(200, 200, false, 6000);
+//				navigate.turnTo(Math.PI);
 			}
+						
 			Sound.beep();
-			// defence stuff
 			
-			
+			loadMotor.setSpeed(100);
+			loadMotor.rotate(150); loadMotor.setSpeed(0); loadMotor.forward();
+			int i=0;
+			while(i<9000000){
+				navigate.goStraight(300, 300, GOAL_WIDTH*30.5);
+				navigate.goStraight(300, 300, -GOAL_WIDTH*30.5);
+				i++;
+			}
 			
 		}
 		
+		//////
+		
 		navigate.travelTo(0,0,true, false);
-			
+		
 	}
 	
 	/**

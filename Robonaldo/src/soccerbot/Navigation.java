@@ -20,7 +20,7 @@ public class Navigation {
 	private final static double W_RADIUS = 2.072;
 	private final static double W_BASE = 19.08;
 	private final static int FAST = 200, SLOW = 150, REGULAR = 250, SMOOTH = 2000, DEFAULT = 6000;
-	private final static double DEG_ERR = 0.003, CM_ERR = 0.7, BAND = 10, FILTER_DIST = 6, TILE_LENGTH = 30.5, ANGLE_WIDTH = 0.003;
+	private final static double DEG_ERR = 0.003, CM_ERR = 0.7, BAND = 7, FILTER_DIST = 6, TILE_LENGTH = 30.5, ANGLE_WIDTH = 0.005;
 	
 	private double filterCount;
 	// motors
@@ -104,18 +104,19 @@ public class Navigation {
 				if(avoid && ((leftPoller.getDistance() <= BAND) || (rightPoller.getDistance() <= BAND))){		
 					// current x and y passed into avoid method to decide which way to avoid the block
 					stopMotors();
-					double odoX = odometer.getX(); double odoY = odometer.getY();
+					double odoX = odometer.getX(); double odoY = odometer.getY(); double odoTheta = odometer.getTheta();
 				
 					// Go back and turn
-					goStraight(100, 100, -5);
+					goStraight(100, 100, -8);
+
 					setSpeeds(REGULAR, REGULAR, false, DEFAULT);
+					
 					if(odoX > odoY){
 						turnTo(-Math.PI/2);
 					}else {
 						turnTo(Math.PI/2);
 					}
-						
-					
+									
 					// parameters used to get back on track after avoiding obstacle
 					//double angleToDest = (Math.atan2(x - odometer.getX(), y - odometer.getY()));
 					double currentAngleToDest;
@@ -339,10 +340,10 @@ public class Navigation {
 				
 			// Turns away if too close
 			if(error < 2){
-				setSpeeds(162, 300, true, DEFAULT);
+				setSpeeds(120, 208, true, DEFAULT);
 			// Turns towards obstacle if too far
 			}else if(error > 2){
-				setSpeeds(300, 162, true, DEFAULT);
+				setSpeeds(208, 120, true, DEFAULT);
 			}else {
 				setSpeeds(150,150, true, DEFAULT);
 			}
@@ -351,10 +352,10 @@ public class Navigation {
 				
 			// Turns away if too close
 			if(error < 2){
-				setSpeeds(300,162, true, DEFAULT);
+				setSpeeds(200,120, true, DEFAULT);
 			// Turns towards obstacle if too far
 			}else if(error > 2){
-				setSpeeds(162, 300, true, DEFAULT);
+				setSpeeds(120, 200, true, DEFAULT);
 			}else {
 				setSpeeds(150,150, true, DEFAULT);
 			}

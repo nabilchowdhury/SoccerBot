@@ -1,0 +1,481 @@
+package soccerbot;
+
+import lejos.hardware.Sound;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+
+/**
+ * <code>Navigation</code> is the class tasked with navigating the robot
+ * from coordinate to coordinate and alter its angle of orientation.
+ * Information required to process the functions of this class depend on information 
+ * stored in the <code>Odometer</code> class.
+ * <p>
+ * Only a single instance of both <code>Navigation</code> and <code>Odometer</code> should exist.
+ * 
+ * @see Odometer
+ * @author Nabil Chowdhury
+ * @author Omar Akkila
+ */
+public class Navigation {
+	// class constants
+	private final static double W_RADIUS = 2.072;
+	private final static double W_BASE = 19.08;
+	private final static int FAST = 200, SLOW = 150, REGULAR = 250, SMOOTH = 2000, DEFAULT = 6000;
+	private final static double DEG_ERR = 0.003, CM_ERR = 0.7, BAND = 15, FILTER_DIST = 6, TILE_LENGTH = 30.5, ANGLE_WIDTH = 0.005;
+	
+	private double filterCount;
+	// motors
+	private EV3LargeRegulatedMotor leftMotor, rightMotor;
+	
+	//odometer
+	private Odometer odometer;
+	
+	// ultrasonic sensors
+	USPoller leftPoller;
+	USPoller rightPoller;
+	LSPoller csLeft;
+	LSPoller csRight;
+		
+	
+	/**
+	 * This constructor assumes two <code>EV3LargeRegualtedMotor</code> objects and two ultrasonic sensors are linked to the brick. 
+	 * An <code>Odometer</code> to process navigation is required.
+	 * 
+	 * @param odometer The odometer object used to retrieve coordinates and heading
+	 * @param left Left ultrasonic sensor
+	 * @param right Right ultrasonic sensor
+	 * @param leftMotor One of two EV3LargeRegulatedMotor objects passed to navigate the robot
+	 * @param rightMOtor Second EV3LargeRegualtedMotor object passed to navigate the robot
+	 */
+	public Navigation(Odometer odometer, USPoller left, USPoller right, LSPoller csLeft, LSPoller csRight, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor){
+		this.odometer = odometer;
+		this.leftPoller = left;
+		this.rightPoller = right;
+		this.csLeft = csLeft;
+		this.csRight = csRight;
+		this.leftMotor = leftMotor;
+		this.rightMotor = rightMotor;
+	}
+	
+	/**
+	 * Travels to the specified coordinate (x, y).
+	 * The current x and y positions of the robot is retrieved from the Odometer
+	 * where the specified coordinates and the current coordinates are used to determine
+	 * the correct heading the robot should face before attempting to travel to 
+	 * the desired coordinate. 
+	 * <p>
+	 * Once the current heading reported by the Odometer is within 0.04 degrees error, the robot
+	 * will then begin its motion towards the desired coordinate until the distance between the polled
+	 * coordinates grabbed from the Odometer and the desired coordinate is within 0.2 cm.
+	 * The motors are then stopped.
+	 * 
+	 *  @param x X-position of the desired coordinate
+	 *  @param y Y-position of the desired coordinate
+	 *  @param avoid Perform obstacle avoidance when obstacles are expected if <code>true</code>.
+	 *  @see Odometer
+	 */
+	public void travelTo(double x, double y, boolean avoid, boolean correct) {
+		//synchronized(lock){
+			double thetaAvoid = Math.atan2(x - odometer.getX(), y - odometer.getY());
+			
+			x = x*TILE_LENGTH;	// actual x distance in cm
+			y = y*TILE_LENGTH;	// actual y distance in cm
+			
+			// turn speed
+			this.setSpeeds(SLOW, SLOW, false, DEFAULT);
+			
+			// correct heading
+			turnTo(x,y);
+			
+			boolean slow = true;
+			while ((Math.abs(x - odometer.getX()) > CM_ERR) || (Math.abs(y - odometer.getY()) > CM_ERR)) {
+				
+				// straight speed
+				if(slow){
+					this.setSpeeds(SLOW, SLOW, true, DEFAULT);
+					try{Thread.sleep(1000);}catch(Exception e){}
+					slow = false;
+				}else {
+					this.setSpeeds(REGULAR+50, REGULAR+50, true, DEFAULT);
+				}
+				
+				///////////////////////
+				// OBSTACLE AVOIDANCE//
+				///////////////////////
+				if(avoid && ((leftPoller.getDistance() <= BAND) || (rightPoller.getDistance() <= BAND))){		
+					// current x and y passed into avoid method to decide which way to avoid the block
+					stopMotors();
+					double odoX = odometer.getX(); double odoY = odometer.getY(); double odoTheta = odometer.getTheta();
+				
+					// Go back and turn
+					//goStraight(100, 100, -8);
+					while((leftPoller.getDistance() <= BAND) && (rightPoller.getDistance() <= BAND)){
+						setSpeeds(-100, -100, true, 6000);
+						if((leftPoller.getDistance() > BAND) || (rightPoller.getDistance() > BAND)){
+							stopMotors();
+							break;
+						}
+					}
+					setSpeeds(REGULAR, REGULAR, false, DEFAULT);
+					
+					
+					if(Robonaldo.SC == 1 || Robonaldo.SC == 3){
+						if(odoX > odoY){
+							turnTo(-Math.PI/2);
+						}else {
+							turnTo(Math.PI/2);
+						}
+					}else if(Robonaldo.SC == 2 || Robonaldo.SC == 4){
+						if(odoX > odoY){
+							turnTo(Math.PI/2);
+						}else {
+							turnTo(-Math.PI/2);
+						}
+					}
+											
+					
+					// parameters used to get back on track after avoiding obstacle
+					//double angleToDest = (Math.atan2(x - odometer.getX(), y - odometer.getY()));
+					double currentAngleToDest;
+					double angleDifference;  // error
+					boolean ignore = true;
+					
+					while(true){
+						avoid(odoX, odoY); // start bang-bang avoider
+						
+						if(Robonaldo.SC == 1 || Robonaldo.SC == 3){
+							if(odoX > odoY){
+								avoid(odoX, odoY); // start bang-bang avoider
+							}else {
+								avoid(odoY, odoX); // start bang-bang avoider
+							}
+						}else if(Robonaldo.SC == 2 || Robonaldo.SC == 4){
+							if(odoX > odoY){
+								avoid(odoY, odoX); // start bang-bang avoider
+							}else {
+								avoid(odoX, odoY); // start bang-bang avoider
+							}
+						}
+						
+						currentAngleToDest = Math.atan2(x - odometer.getX(), y - odometer.getY());
+						angleDifference = Math.abs(thetaAvoid - currentAngleToDest);
+	
+						// First if statement used to ignore first slope value
+						if((angleDifference < ANGLE_WIDTH) && ignore == true){
+							ignore = false;
+							// Sleeps for 1000 ms to avoid first angle calculation. We only want the angle after the turn not before
+							try{
+								Thread.sleep(1000);
+							}catch(Exception e){}
+								
+						// Once back on trajectory, stop motors, turn to destination, and break out of while loop
+						}else if((angleDifference < ANGLE_WIDTH) && ignore == false){
+							stopMotors();
+							this.setSpeeds(SLOW, SLOW, false, DEFAULT);
+							turnTo(x,y);
+							break;
+						}
+													
+					}
+						
+				}
+				//END AVOIDANCE
+				
+				
+				// Turn off avoidance when within half length of tile. This prevents robot from detecting the wall as an obstacle
+				double errorX = Math.abs(odometer.getX() - x);
+				double errorY = Math.abs(odometer.getY() - y);
+				double distanceToDest = Math.sqrt(errorX*errorX + errorY*errorY);
+				if( distanceToDest <= TILE_LENGTH/2 ){
+					avoid = false;
+				}		
+				
+			}
+			
+			stopMotors();
+			
+			// Do odometry correction at destination (Input must be an Integer to indicate presence of grid lines)
+			if(correct){
+				odometryCorrection(x, y);
+			}
+			
+		//}
+	}
+	
+	/**
+	 * This method causes the robot to turn to absolute heading theta via a minimum angle
+	 * 
+	 * @param theta Absolute angle from the y-axis to turn to
+	 * @see Odometer
+	 */
+	public void turnTo(double theta){	
+		leftMotor.rotate(-convertAngle(W_RADIUS, W_BASE, theta), true);	
+		rightMotor.rotate(convertAngle(W_RADIUS, W_BASE, theta), false);
+		preventTwitch();
+	}
+	
+	
+	public void turnTo(double x, double y){
+		turnTo(angleToHeading(x, y));
+		preventTwitch();
+	}
+
+	/**
+	 * Convert absolute distance in cm into degrees the wheels are required based
+	 * on the radius of the wheel to be rotated.
+	 * Equation used is (180.0 * distance) / (pi * radius)
+	 * 
+	 * @param radius Radius of wheel being rotated in cm
+	 * @param distance Absolute distance in cm
+	 * @return Degrees wheel is required to rotate
+	 */
+	private int convertDistance(double radius, double distance) {
+		return (int) ((180.0 * distance) / (Math.PI * radius));
+	}
+	
+	/**
+	 * Travel in a straight line for a certain distance in cm.
+	 * 
+	 * @param lSpd Speed of left motor
+	 * @param rSpd Speed of right motor
+	 * @param distance Distance in cm to be traveled
+	 */
+	public void goStraight(int lSpd, int rSpd, double distance){
+		setSpeeds(lSpd, rSpd, false, DEFAULT);
+		leftMotor.rotate(-convertDistance(W_RADIUS, distance), true);
+		rightMotor.rotate(-convertDistance(W_RADIUS, distance), false);
+		preventTwitch();
+	}
+	
+
+	/**
+	 * Convert absolute angle on place to degrees each wheel is required to turn based
+	 * on the radius of the wheel to be rotated and the width of the robot.
+	 * Through the angle and the width we can calculate the distance required to move using
+	 * (width * angle) / 2.0
+	 * 
+	 * @param radius Radius of wheel being rotated in cm
+	 * @param width Wheel-to-wheel distance measured in cm from the center of each wheel
+	 * @param angle Absolute angle to be rotated in radians
+	 * @return Degrees wheel is required to rotate
+	 * @see convertDistance(dobule radius, double distance)
+	 * 
+	 */ 
+	private int convertAngle(double radius, double width, double angle) {
+		return convertDistance(radius, width * angle / 2);
+	}
+	
+	/**
+	 * Calculate the absolute angle to orient this robot toward the coordinate (x, y).
+	 * This method is called in the <code>travelTo</code> method to orient this robot toward
+	 * the desired coordinate before starting its motion toward it.
+	 * 
+	 * @param x X-position of coordinate to turn to
+	 * @param y Y-position of coordinate to turn to
+	 * @return Absolute angle to turn to relative to y-axis
+	 */ 
+	private double angleToHeading(double x, double y){
+		// absolute heading
+		double heading = Math.atan2(x-odometer.getX(), y-odometer.getY());
+		//theta from 0 to 2PI
+		if (heading < 0){
+			heading += Math.PI*2;
+		}
+							
+		// Minimal angle to correct trajectory
+		double angularError = heading - odometer.getTheta();
+		double angleToHeading = 0;
+		if(angularError<= Math.PI && angularError >= -Math.PI){
+			angleToHeading = angularError;
+		}else if(angularError < -Math.PI){
+			angleToHeading = angularError + 2*Math.PI;
+		}else if(angularError > Math.PI){
+			angleToHeading = angularError - 2*Math.PI;
+		}
+		return angleToHeading;
+			
+	}
+	
+	/**
+	 * Set the speeds of each motor and give the option on whether to move directly after
+	 * setting.
+	 * 
+	 * @param leftSpeed Speed of left motor
+	 * @param rightSpeed Speed of right motor
+	 * @param move Begin motion of motors if <code>true</code> otherwise do nothing
+	 * @param acceleration Acceleration value for each motor. Same value is used for both.
+	 */
+	public void setSpeeds(int leftSpeed, int rightSpeed, boolean move, int acceleration){
+		leftMotor.setSpeed(leftSpeed); leftMotor.setAcceleration(acceleration);
+		rightMotor.setSpeed(rightSpeed); rightMotor.setAcceleration(acceleration);
+		
+		if(leftSpeed == 0 && rightSpeed == 0){
+			stopMotors();
+		}
+		
+		if(move){
+			if(leftSpeed < 0){
+				leftMotor.forward();
+			}else {
+				leftMotor.backward();
+			}
+			
+			if(rightSpeed < 0){
+				rightMotor.forward();
+			}else {
+				rightMotor.backward();
+			}
+		}
+	}
+	
+	public void stopMotors(){
+		leftMotor.setAcceleration(DEFAULT); rightMotor.setAcceleration(DEFAULT);
+		leftMotor.setSpeed(0); rightMotor.setSpeed(0);
+		leftMotor.backward(); rightMotor.backward();
+	}
+	
+	/**
+	 * Bang-bang style controller for obstacle avoidance.
+	 * 
+	 * @param odoX Current x-value in cm reported by the odometer
+	 * @param odoY Current y-value in cm reported by the odometer
+	 * 
+	 * @see Odometer
+	 * @see USPoller
+	 */
+	private void avoid(double odoX, double odoY){
+		
+		double error; 
+		double distance = 0;
+		if(Robonaldo.SC == 1 || Robonaldo.SC == 2){
+			if(odoX > odoY){
+				distance = rightPoller.getDistance();
+			}else {
+				distance = leftPoller.getDistance();
+			}
+		}else if(Robonaldo.SC == 3 || Robonaldo.SC == 4){
+			if(odoX > odoY){
+				distance = leftPoller.getDistance();
+			}else {
+				distance = rightPoller.getDistance();
+			}
+		}
+		
+		// basic filter
+		if (distance == 2*BAND && filterCount < FILTER_DIST) {
+			// bad value, do not set the distance var, however do increment the filter value
+			filterCount ++;
+			error = 0;
+		} else if (distance == 2*BAND){
+			// true 255, therefore set distance to 255
+			error = distance - 2*BAND;
+		} else {
+			// distance went below 255, therefore reset everything.
+			filterCount = 0;
+			error = distance - BAND;
+		}		
+		
+		if(odoX > odoY){	
+				
+			// Turns away if too close
+			if(error < 2){
+				setSpeeds(120, 208, true, DEFAULT);
+			// Turns towards obstacle if too far
+			}else if(error > 2){
+				setSpeeds(208, 120, true, DEFAULT);
+			}else {
+				setSpeeds(150,150, true, DEFAULT);
+			}
+						
+		}else {
+				
+			// Turns away if too close
+			if(error < 2){
+				setSpeeds(200,120, true, DEFAULT);
+			// Turns towards obstacle if too far
+			}else if(error > 2){
+				setSpeeds(120, 200, true, DEFAULT);
+			}else {
+				setSpeeds(150,150, true, DEFAULT);
+			}
+						
+		}
+		
+	}
+	
+	
+	/**
+	 * This method uses the two light sensors and grid lines to correct the angle during localization.
+	 * @param n Number of desired loops for correction. A higher loop count results in better correction
+	 * @param forward Start loop by going forward if <code>true</code>. Else start loop backwards
+	 */
+	public void correctAngle(int n, boolean forward){
+		int sign;
+		if(forward){
+			sign = 1;
+		}else{
+			sign = -1;
+		}
+		for(int i=1; i<=n; i++){
+			setSpeeds(sign*200/i, sign*200/i, true, SMOOTH);
+			while(true){	
+				if(csLeft.getDifferentialData() > 0.13){
+					setSpeeds(0, sign*rightMotor.getSpeed(), true, SMOOTH/2);
+				}
+				if(csRight.getDifferentialData() > 0.13){
+					setSpeeds(sign*leftMotor.getSpeed(), 0, true, SMOOTH/2);
+				}
+				if(rightMotor.getSpeed() == 0 && leftMotor.getSpeed() == 0){
+					stopMotors();
+					Sound.beep();
+					break;
+				}
+			}
+			sign = -sign;
+		}
+		
+	}
+	
+	
+	//NEW METHOD ODOMETRY CORRECTION
+	public void odometryCorrection(double x, double y){
+		correctAngle(2, false);
+		setSpeeds(250, 250, false, DEFAULT);
+		goStraight(200,200,10.5);
+		setSpeeds(250, 250, false, DEFAULT);
+		turnTo(-Math.PI/2);
+		correctAngle(2, false);
+		goStraight(200,200,10.5);
+		
+		odometer.setX(x); odometer.setY(y); 
+		int multiplier = (int)(Math.round(odometer.getTheta()/(Math.PI/4)));
+		odometer.setTheta(multiplier*Math.PI/4);
+	}
+	
+	/**
+	 * Prevent twitching in the motors
+	 */
+	public void preventTwitch(){
+		this.stopMotors();
+		try{
+			Thread.sleep(60);
+		}catch(Exception e){}
+	}
+	
+	/**
+	 * @return The <code>EV3LargeRegulatedMotor</code> object representing the right motor
+	 */
+	public EV3LargeRegulatedMotor getRMotor(){
+		return rightMotor;
+	}
+	
+	/**
+	 * 
+	 * @return The <code>EV3LargeRegulatedMotor</code> object representing the left motor
+	 */
+	public EV3LargeRegulatedMotor getLMotor(){
+		return leftMotor;
+	}
+	
+	
+}
+

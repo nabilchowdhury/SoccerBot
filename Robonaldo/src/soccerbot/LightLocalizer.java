@@ -137,15 +137,15 @@ public class LightLocalizer{
 			boolean[] update = {true, true, true};
 			odo.setPosition(position, update);
 		}else if(this.startingCorner == 2){
-			double[] position = {6*TILE_LENGTH, 0.0, 0.0};
+			double[] position = {10*TILE_LENGTH, 0.0, 0.0};
 			boolean[] update = {true, true, true};
 			odo.setPosition(position, update);
 		}else if(this.startingCorner == 3){
-			double[] position = {6*TILE_LENGTH, 6*TILE_LENGTH, 3*Math.PI/2};
+			double[] position = {10*TILE_LENGTH, 10*TILE_LENGTH, 3*Math.PI/2};
 			boolean[] update = {true, true, true};
 			odo.setPosition(position, update);
 		}else if(this.startingCorner == 4){
-			double[] position = {0.0, 6*TILE_LENGTH, Math.PI};
+			double[] position = {0.0, 10*TILE_LENGTH, Math.PI};
 			boolean[] update = {true, true, true};
 			odo.setPosition(position, update);
 		}
