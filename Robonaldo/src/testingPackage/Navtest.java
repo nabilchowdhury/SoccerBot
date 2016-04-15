@@ -1,4 +1,4 @@
-
+package testingPackage;
 public class Navtest {
 static int a;
 static int x1;

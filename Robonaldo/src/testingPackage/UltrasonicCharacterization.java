@@ -43,7 +43,7 @@ public class UltrasonicCharacterization implements TimerListener{
 		SensorModes usSensor = new EV3UltrasonicSensor(portUS);
 		SampleProvider usValue = usSensor.getMode("Distance");			// colorValue provides samples from this instance
 		float[] usData = new float[usValue.sampleSize()];		
-		Odometer odo = new Odometer(leftMotor, rightMotor,20, false); 
+		UltrasonicCharacterizationOdometer odo = new UltrasonicCharacterizationOdometer(leftMotor, rightMotor,20, false); 
 
 		
 		public static void main(String[] args) throws InterruptedException {

@@ -1,4 +1,11 @@
-
+package testingPackage;	
+import soccerbot.Odometer;
+import soccerbot.USPoller;
+import soccerbot.LSPoller;
+import soccerbot.Screen;
+import soccerbot.Navigation;
+import soccerbot.USLocalizer;
+import soccerbot.LightLocalizer;
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
@@ -47,24 +54,17 @@ public class NavMainTest{
 		
 		USPoller leftPoller = new USPoller(usPortL);
 		USPoller rightPoller = new USPoller(usPortR);
-		LSPoller lsPoller = new LSPoller(colorPortM);
-		//LSPoller correctionPoller = new LSPoller(colorPortT);
-		leftPoller.start(); rightPoller.start(); lsPoller.start();	//correctionPoller.start();
-		Navigation navigate = new Navigation(odo,leftPoller, rightPoller, leftMotor, rightMotor);
+		LSPoller leftCS = new LSPoller(colorPortT);
+		LSPoller rightCS = new LSPoller(colorPortM);
+		leftPoller.start(); rightPoller.start(); leftCS.start(); rightCS.start();
+		Navigation navigate = new Navigation(odo,leftPoller, rightPoller, leftCS, rightCS, leftMotor, rightMotor);
 		
 		USLocalizer usLocalizer = new USLocalizer(odo, navigate, leftPoller, rightPoller);
-		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, lsPoller);
-		(new Thread(){
-			@Override
-			public void run(){
-				while (Button.waitForAnyPress()!= Button.ID_ESCAPE);
-				System.exit(0);
-			}
-		}).start();
-		//usLocalizer.localize();
-		//lLocalizer.localize();
-		//OdometryCorrection correct = new OdometryCorrection(odo, correctionPoller);
-		//correct.start();
+		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, leftCS, rightCS, 1);
+
+		usLocalizer.localize();
+		lLocalizer.localize();
+
 	navigate.turnTo(-50,130);
 	navigate.goStraight(REGULAR, REGULAR, Math.sqrt(50*50+130*130));
 	navigate.turnTo(-160,30);
@@ -79,7 +79,6 @@ public class NavMainTest{
 		
 		
 		
-		//System.exit(0);
 		
 	}
 	private static int pointDist(int x1, int y1, int x2,int y2){

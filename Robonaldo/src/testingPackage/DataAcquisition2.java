@@ -116,6 +116,7 @@ public class DataAcquisition2 implements TimerListener{
 		numSamples++;
 		System.out.println(sampleColor[0]);		
 	}
+	
 	/*
 	float d1=0;
 	float d2=0;
@@ -125,7 +126,7 @@ public class DataAcquisition2 implements TimerListener{
 		float toReturn=d2-d1;
 		d1=d2;
 		return toReturn;
-		}	*/
+	}*/	
 	
 
 }

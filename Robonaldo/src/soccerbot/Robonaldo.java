@@ -23,7 +23,7 @@ public class Robonaldo {
 	private static Object lock;
 	
 	// WIFI
-	private static final String SERVER_IP = "192.168.10.131"; // CHANGE BACK!
+	private static final String SERVER_IP = "192.168.10.200";
 	private static final int TEAM_NUMBER = 14;
 	
 	public static final EV3LargeRegulatedMotor loadMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
@@ -35,10 +35,10 @@ public class Robonaldo {
 	public static final Port usPortL = LocalEV3.get().getPort("S2");
 	public static final Port usPortR = LocalEV3.get().getPort("S1");
 	
-	//Colorsensor Middle
+	//Colorsensor right
 	public static final Port colorPortM = LocalEV3.get().getPort("S3");	
 	
-	//Colorsensor T
+	//Colorsensor left
 	public static final Port colorPortT = LocalEV3.get().getPort("S4");	
 	
 	public static double WIDTH = 19.08;

@@ -15,7 +15,7 @@ public class Screen extends Thread{
 	/**
 	 * @param odometer The <code>Odometer</code> to be polled for information
 	 */
-	Screen(Odometer odometer){
+	public Screen(Odometer odometer){
 		this.odometer = odometer;
 	}
 	

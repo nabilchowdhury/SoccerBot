@@ -1,4 +1,12 @@
-
+package testingPackage;
+import soccerbot.LSPoller;
+import soccerbot.Odometer;
+import soccerbot.Screen;
+import soccerbot.Navigation;
+import soccerbot.USPoller;
+import soccerbot.LSPoller;
+import soccerbot.USLocalizer;
+import soccerbot.LightLocalizer;
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
@@ -28,6 +36,9 @@ public class LocalizationTimeTest {
 	public static final Port colorPortM = LocalEV3.get().getPort("S3");	
 	
 	//Colorsensor T
+	public static final Port colorPortT = LocalEV3.get().getPort("S4");	;	
+	
+	//Colorsensor T
 	//public static final Port colorPortT = LocalEV3.get().getPort("S4");	
 	
 	public static double WIDTH = 19.05;
@@ -42,52 +53,20 @@ public class LocalizationTimeTest {
 		Screen lcd = new Screen(odo);
 		odo.start();
 		lcd.start();
-		Navigation navigate = new Navigation(odo, leftMotor, rightMotor);
 		
 		USPoller leftPoller = new USPoller(usPortL);
 		USPoller rightPoller = new USPoller(usPortR);
-		leftPoller.start(); rightPoller.start();
+		LSPoller leftCS = new LSPoller(colorPortT);
+		LSPoller rightCS = new LSPoller(colorPortM);
+		leftPoller.start(); rightPoller.start(); leftCS.start(); rightCS.start();
+		
+		Navigation navigate = new Navigation(odo, leftPoller, rightPoller, leftCS, rightCS, leftMotor, rightMotor);
 		
 		USLocalizer usLocalizer = new USLocalizer(odo, navigate, leftPoller, rightPoller);
-		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, colorPortM);
+		LightLocalizer lLocalizer = new LightLocalizer(odo, navigate, leftCS, rightCS, 1);
 		
-		(new Thread(){
-			@Override
-			public void run(){
-				while (Button.waitForAnyPress()!= Button.ID_ESCAPE);
-				System.exit(0);
-			}
-		}).start();
 		usLocalizer.localize();
-		lLocalizer.start();
-		odo.setTheta(90.0);
-		odo.setY(0.0);
-		odo.setX(0.0);
-		
-		//do square
-		/*
-		navigate.travelTo(0, 4);
-		navigate.travelTo(4, 4);
-		navigate.travelTo(4, 0);
-		navigate.travelTo(0, 0);*/
-		
-		
-		
+		lLocalizer.localize();		
 		
 	}
-	
-	
-	private static int convertAngle(double radius, double width, double angle) {
-		return convertDistance(radius, width * angle / 2);
-	}
-	
-	private static int convertDistance(double radius, double distance) {
-		return (int) ((180.0 * distance) / (Math.PI * radius));
-	}
-	
-	public static EV3LargeRegulatedMotor[] getMotors(){
-		EV3LargeRegulatedMotor[] m = {leftMotor, rightMotor};
-		return m;
-	}
-	
 }

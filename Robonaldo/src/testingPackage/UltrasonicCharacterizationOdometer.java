@@ -1,35 +1,9 @@
-/*
- * File: Odometer.java
- * Written by: Sean Lawlor
- * ECSE 211 - Design Principles and Methods, Head TA
- * Fall 2011
- * Ported to EV3 by: Francois Ouellet Delorme
- * Fall 2015
- * 
- * Class which controls the odometer for the robot
- * 
- * Odometer defines cooridinate system as such...
- * 
- * 					90Deg:pos y-axis
- * 							|
- * 							|
- * 							|
- * 							|
- * 180Deg:neg x-axis------------------0Deg:pos x-axis
- * 							|
- * 							|
- * 							|
- * 							|
- * 					270Deg:neg y-axis
- * 
- * The odometer is initalized to 90 degrees, assuming the robot is facing up the positive y-axis
- * 
- */
+package testingPackage;
 import lejos.utility.Timer;
 import lejos.utility.TimerListener;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
-public class Odometer implements TimerListener {
+public class UltrasonicCharacterizationOdometer implements TimerListener {
 
 	private Timer timer;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
@@ -39,7 +13,7 @@ public class Odometer implements TimerListener {
 	private double[] oldDH, dDH;
 	
 	// constructor
-	public Odometer (EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, int INTERVAL, boolean autostart) {
+	public UltrasonicCharacterizationOdometer (EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, int INTERVAL, boolean autostart) {
 		
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;

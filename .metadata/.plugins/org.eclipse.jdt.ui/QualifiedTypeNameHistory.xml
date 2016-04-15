@@ -14,4 +14,5 @@
 <fullyQualifiedTypeName name="lejos.hardware.Sound"/>
 <fullyQualifiedTypeName name="lejos.hardware.motor.EV3LargeRegulatedMotor"/>
 <fullyQualifiedTypeName name="java.lang.Math"/>
+<fullyQualifiedTypeName name="soccerbot.USPoller"/>
 </qualifiedTypeNameHistroy>

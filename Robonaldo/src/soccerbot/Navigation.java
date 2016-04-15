@@ -20,7 +20,7 @@ public class Navigation {
 	private final static double W_RADIUS = 2.072;
 	private final static double W_BASE = 19.08;
 	private final static int FAST = 200, SLOW = 150, REGULAR = 250, SMOOTH = 2000, DEFAULT = 6000;
-	private final static double DEG_ERR = 0.003, CM_ERR = 0.7, BAND = 7, FILTER_DIST = 6, TILE_LENGTH = 30.5, ANGLE_WIDTH = 0.005;
+	private final static double DEG_ERR = 0.003, CM_ERR = 0.9, BAND = 7, FILTER_DIST = 6, TILE_LENGTH = 30.5, ANGLE_WIDTH = 0.005;
 	
 	private double filterCount;
 	// motors
