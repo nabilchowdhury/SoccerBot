@@ -54,7 +54,8 @@ public class Odometer extends Thread {
 	}
 
 	/**
-	 * TODO
+	 * Through the speed of each motor, the wheel base of this robot, and the radius of each wheel, we can determine the distance traveled 
+	 * and the heading of the robot. This is used to track this robot's position right after start-up.
 	 * @see java.lang.Thread#run()
 	 */
 	public void run() {

@@ -3,8 +3,6 @@ package soccerbot;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 /**
- * NOTE: Class is still under construction - may have more methods in the future.
- * 
  * Attacker is tasked with interacting with the motors responsible for loading balls and launching them
  * and to provide those functionalities
  * 
@@ -21,13 +19,17 @@ public class Attacker {
 	
 	/**
 	 * This constructor requires a <code>Navigation</code> object and the two <code>EV3LargeRegulatedMotor</code> objects 
-	 * representing the motors responsible for the ball-loading mechanism and the launching mechanism
+	 * representing the motors responsible for the ball-loading mechanism and the launching mechanism. <code>x1, y1, x1, y2</code> 
+	 * represent the coordinates of the tiles of the left and right side of the goal, respectively.
 	 * 
 	 * @param navigate The singleton <code>Navigation</code> object
 	 * @param loadMotor Motor connected to the loading mechanism
 	 * @param launchMotor Motor connected to the launching mechanism
+	 * @param x1 X-position of tile on the left side of the goal
+	 * @param y1 Y-position of tile on the left side of the goal
+	 * @param x2 X-position of tile on the right side of the goal
+	 * @param y2 Y-position of tile on the right side of the goal
 	 */
-	
 	public Attacker(Navigation navigate, EV3LargeRegulatedMotor loadMotor, EV3LargeRegulatedMotor launchMotor, double x1, double y1, double x2, double y2){
 		this.navigate = navigate;
 		
@@ -42,11 +44,12 @@ public class Attacker {
 	
 	/**
 	 * This method is responsible for loading balls into the loader and launching them.
-	 * The loadMotor must start with the loader pointing straight upwards with the launchMotor
-	 * initially resting on the actual loadMotor.
+	 * The loadMotor must start with the loader pointing straight upwards.
 	 * <p>
-	 * This will start by navigating and using the launchMotor to load balls into the loader.
-	 * After balls have been loaded, the launchMotor will be used to launch them one-by-one.
+	 * This will start after this robot has navigated to the ball platform. Three balls will be retrieved where by afterwards this robot will navigate
+	 * to the center of the neutral zone and then proceed with the launching algorithm.
+	 * <p>
+	 * The launching algorithm starts of by aiming towards the left innermost tile of the goal and alternates between that and the right innermost tile until all balls are fired.
 	 * 
 	 */
 	public void attack(){

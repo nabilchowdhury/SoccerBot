@@ -20,6 +20,7 @@ public class USPoller extends Thread{
 	private int FILTER_OUT = 5;
 	private int filterControl;
 	private Object lock;
+	
 	/**
 	 * Takes in a <code>Port</code> object representing the port which the ultrasonic sensor to be sampled
 	 * is connected to.

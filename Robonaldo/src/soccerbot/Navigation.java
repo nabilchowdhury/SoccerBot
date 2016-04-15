@@ -37,12 +37,14 @@ public class Navigation {
 		
 	
 	/**
-	 * This constructor assumes two <code>EV3LargeRegualtedMotor</code> objects and two ultrasonic sensors are linked to the brick. 
-	 * An <code>Odometer</code> to process navigation is required.
+	 * This constructor assumes two <code>EV3LargeRegualtedMotor</code> objects, two ultrasonic sensors, and two color sensors are linked to the brick. 
+	 * An <code>Odometer</code> to perform navigation is required.
 	 * 
 	 * @param odometer The odometer object used to retrieve coordinates and heading
 	 * @param left Left ultrasonic sensor
 	 * @param right Right ultrasonic sensor
+	 * @param csLeft Left color sensor
+	 * @param csRight Right color sensor
 	 * @param leftMotor One of two EV3LargeRegulatedMotor objects passed to navigate the robot
 	 * @param rightMOtor Second EV3LargeRegualtedMotor object passed to navigate the robot
 	 */
@@ -66,11 +68,12 @@ public class Navigation {
 	 * Once the current heading reported by the Odometer is within 0.04 degrees error, the robot
 	 * will then begin its motion towards the desired coordinate until the distance between the polled
 	 * coordinates grabbed from the Odometer and the desired coordinate is within 0.2 cm.
-	 * The motors are then stopped.
+	 * The motors are then stopped and then may or may not perform odometry correction.
 	 * 
 	 *  @param x X-position of the desired coordinate
 	 *  @param y Y-position of the desired coordinate
 	 *  @param avoid Perform obstacle avoidance when obstacles are expected if <code>true</code>.
+	 *  @param correct Performs odometry correction after traveling if <code>true</code>
 	 *  @see Odometer
 	 */
 	public void travelTo(double x, double y, boolean avoid, boolean correct) {
@@ -183,7 +186,12 @@ public class Navigation {
 		preventTwitch();
 	}
 	
-	
+	/**
+	 * This method causes the robot to turn towards the passed x and y coordinates in cm.
+	 * 
+	 * @param x x-coordinate in cm
+	 * @param y y-coordinate in cm
+	 */
 	public void turnTo(double x, double y){
 		turnTo(angleToHeading(x, y));
 		preventTwitch();
@@ -398,7 +406,14 @@ public class Navigation {
 	}
 	
 	
-	//NEW METHOD ODOMETRY CORRECTION
+	/**
+	 * 
+	 * Adjusts this robot to center itself on the grid line intersection and update its odometer with the x and y corodinate
+	 * of the grid line intersection.
+	 * 
+	 * @param x x-coordinate of grid line intersection in cm
+	 * @param y y-corrdinate of grid line intersection in cm
+	 */
 	public void odometryCorrection(double x, double y){
 		correctAngle(2, false);
 		setSpeeds(250, 250, false, DEFAULT);

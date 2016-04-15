@@ -31,7 +31,12 @@ public class ParseTransmission {
 	
 	public static TextLCD LCD = LocalEV3.get().getTextLCD();
 	
-	// This should only be called after verifying that there is data in the input stream
+	/**
+	 * This should only be called after verifying that there is data in the input stream
+	 * 
+	 * @param dis
+	 * @return HashMap of parameter key string with its integer value
+	 */
 	public static HashMap<String,Integer> parseData(DataInputStream dis){
 		HashMap<String,Integer> StartData;
 		LCD.drawString("Receipt initiated", 0, 1);
@@ -46,7 +51,6 @@ public class ParseTransmission {
 	}
 	
 	/**
-	 * TODO
 	 * 
 	 * @param dis
 	 * @throws IOException

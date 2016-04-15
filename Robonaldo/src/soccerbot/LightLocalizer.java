@@ -41,7 +41,7 @@ public class LightLocalizer{
 	 * @param leftCS The <code>LSPoller</code> object representing the left EV3 Color Sensor to be passed
 	 * @param rightCS The <code>LSPoller</code> object representing the right EV3 Color Sensor to be passed
 	 * @param startingCorner Integer between 1-4 representing the four corners of the field;
-	 * 						 Bottom-left = 1, Bottom-Right = 2, Top-Left = 3, Top-Right = 4
+	 * 						 Bottom-left = 1, Bottom-Right = 2, Top-Right = 3, Top-Left = 4
 	 */
 	public LightLocalizer(Odometer odo, Navigation navigate, LSPoller leftCS, LSPoller rightCS, int startingCorner) {
 		this.odo = odo;
